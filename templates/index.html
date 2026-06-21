@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Review Fetcher</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    background:#f8fafc;
+    font-family:Inter,Arial,sans-serif;
+    padding:25px;
+    color:#111827;
+}
+
+
+.box{
+
+    max-width:650px;
+    margin:auto;
+    background:#ffffff;
+    padding:28px;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+
+}
+
+
+h2{
+
+    text-align:center;
+    margin-bottom:5px;
+
+}
+
+
+.subtitle{
+
+    text-align:center;
+    color:#64748b;
+    font-size:14px;
+    margin-bottom:25px;
+
+}
+
+
+
+label{
+
+    font-size:13px;
+    font-weight:600;
+    color:#334155;
+    display:block;
+    margin-top:15px;
+
+}
+
+
+
+input{
+
+    width:100%;
+    padding:12px;
+    margin-top:7px;
+    border:1px solid #e2e8f0;
+    border-radius:10px;
+    background:#f8fafc;
+    outline:none;
+
+}
+
+
+input:focus{
+
+    border-color:#2563eb;
+    background:white;
+
+}
+
+
+
+button{
+
+    margin-top:20px;
+    padding:11px 22px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    font-size:14px;
+    cursor:pointer;
+
+}
+
+
+button:hover{
+
+    background:#1d4ed8;
+
+}
+
+
+table{
+
+    width:100%;
+    margin-top:25px;
+    border-collapse:collapse;
+
+}
+
+
+th{
+
+    background:#111827;
+    color:white;
+    padding:10px;
+
+}
+
+
+td{
+
+    padding:10px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:14px;
+
+}
+
+
+.rating{
+
+    color:#f59e0b;
+
+}
+
+select{
+
+width:100%;
+padding:12px;
+margin-top:7px;
+border:1px solid #e2e8f0;
+border-radius:10px;
+background:#f8fafc;
+
+}
+
+textarea{
+
+    width:100%;
+    height:100px;
+    padding:12px;
+    margin-top:7px;
+    border:1px solid #e2e8f0;
+    border-radius:10px;
+    background:#f8fafc;
+    resize:none;
+    
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="box">
+
+
+<h2>Play Store Reviews</h2>
+
+<p class="subtitle">
+Fetch Google Play Store reviews by app and date
+</p>
+
+<form method="POST">
+
+
+<label>
+Package ID
+</label>
+
+<input
+name="package"
+placeholder="Example: com.whatsapp"
+required>
+
+
+
+<label>
+Select Review Date
+</label>
+
+<input
+type="date"
+name="date"
+required>
+
+<label>
+⭐ Select Rating
+</label>
+
+<select name="rating">
+
+<option value="">All Stars</option>
+<option value="5">5 Star ⭐⭐⭐⭐⭐</option>
+<option value="4">4 Star ⭐⭐⭐⭐</option>
+<option value="3">3 Star ⭐⭐⭐</option>
+<option value="2">2 Star ⭐⭐</option>
+<option value="1">1 Star ⭐</option>
+
+</select>
+
+
+
+<label>
+🔍 Search Comment (optional)
+</label>
+
+<textarea
+name="keyword"
+placeholder="Enter multiple comments
+
+Example:
+🎀
+Good app
+Excellent app"></textarea>
+
+
+<button>
+Fetch Reviews
+</button>
+
+
+</form>
+
+
+
+{% if reviews %}
+
+<p>
+Total: {{reviews|length}}
+</p>
+
+
+<table>
+
+
+<tr>
+<th>Profile</th>
+<th>User</th>
+<th>Review</th>
+<th>Rating</th>
+<th>Date</th>
+<th>Time</th>
+<th>Package ID</th>
+</tr>
+
+
+
+{% for r in reviews %}
+
+<tr>
+
+<td>
+    <img
+    src="{{r.userImage}}"
+    width="40"
+    height="40"
+    style="border-radius:50%;">
+</td>
+
+<td>{{r.userName}}</td>
+
+<td>{{r.content}}</td>
+
+<td class="star">
+{{r.score}} ⭐
+</td>
+
+<td>
+{{r.at.strftime("%Y-%m-%d")}}
+</td>
+
+
+<td>
+{{r.at.strftime("%H:%M:%S")}}
+</td>
+
+
+<td>
+{{package}}
+</td>
+
+
+</tr>
+
+{% endfor %}
+
+
+</table>
+
+
+{% endif %}
+
+
+
+</div>
+
+
+</body>
+
+</html>
