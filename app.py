@@ -9,19 +9,23 @@ SHEET_URL = "https://script.google.com/macros/s/AKfycbxEDtFnk5IUVy1Kx8so8f3XKEHQ
 
 
 # =========================
-# GOOGLE SHEET SAVE (FIXED)
+# SAVE TO GOOGLE SHEET
 # =========================
 def save_to_google_sheet(package, reviews_data):
 
     rows = []
 
     for r in reviews_data:
+
+        # SAFE DATE HANDLING (FIXED CRASH ISSUE)
+        at_val = str(r.get("at", ""))
+
         rows.append({
             "username": str(r.get("userName", "")),
             "review": str(r.get("content", "")),
             "rating": int(r.get("score", 0)),
-            "date": r["at"].strftime("%Y-%m-%d"),
-            "time": r["at"].strftime("%H:%M:%S"),
+            "date": at_val[:10],
+            "time": at_val[-8:],
             "package": package
         })
 
@@ -29,19 +33,20 @@ def save_to_google_sheet(package, reviews_data):
         return
 
     try:
-        # IMPORTANT FIX: send array directly
-        requests.post(
+        response = requests.post(
             SHEET_URL,
-            json=rows,
+            json={"reviews": rows},
             headers={"Content-Type": "application/json"},
             timeout=30
         )
+        print("Google Sheet response:", response.text)
+
     except Exception as e:
-        print("Sheet error:", e)
+        print("Sheet error:", str(e))
 
 
 # =========================
-# STRICT MATCH ENGINE (FINAL)
+# STRICT MATCH ENGINE (FINAL FIX)
 # =========================
 def match_keyword(comment, word):
 
@@ -52,30 +57,27 @@ def match_keyword(comment, word):
         return False
 
     # =========================
-    # SYMBOL / EMOJI MODE
+    # SYMBOL / EMOJI MODE (SPACE INCLUDED)
     # =========================
     def is_symbol_only(text):
-        return all(not c.isalnum() and not c.isspace() for c in text)
+        return all(not c.isalnum() for c in text)
 
     if is_symbol_only(word):
 
-        # extract symbol blocks from comment
-        blocks = re.findall(r'[^\w\s]', comment)
-
-        # exact match only
-        return word in blocks
+        # EXACT MATCH (SPACE INCLUDED)
+        return word in comment
 
     # =========================
     # NORMAL TEXT MODE
     # =========================
-    comment_lower = comment.lower()
-    word_lower = word.lower()
+    comment = comment.lower()
+    word = word.lower()
 
-    escaped = re.escape(word_lower)
+    escaped = re.escape(word)
 
     pattern = r'(?<!\w)' + escaped + r'(?!\w)'
 
-    return re.search(pattern, comment_lower) is not None
+    return re.search(pattern, comment) is not None
 
 
 # =========================
@@ -134,7 +136,7 @@ def home():
                 break
 
         # =========================
-        # FILTER LOGIC
+        # FILTER LOGIC (UNCHANGED CORE)
         # =========================
         for r in found_reviews:
 
@@ -181,4 +183,4 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=5000
-)
+    )
