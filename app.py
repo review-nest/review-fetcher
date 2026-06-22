@@ -2,6 +2,7 @@ from flask import Flask, request, render_template
 from google_play_scraper import reviews, Sort
 import requests
 import re
+import json
 
 app = Flask(__name__)
 
@@ -9,7 +10,7 @@ SHEET_URL = "https://script.google.com/macros/s/AKfycbxEDtFnk5IUVy1Kx8so8f3XKEHQ
 
 
 # =========================
-# SAVE TO GOOGLE SHEET
+# GOOGLE SHEET SAVE (FIXED)
 # =========================
 def save_to_google_sheet(package, reviews_data):
 
@@ -17,15 +18,21 @@ def save_to_google_sheet(package, reviews_data):
 
     for r in reviews_data:
 
-        # SAFE DATE HANDLING (FIXED CRASH ISSUE)
-        at_val = str(r.get("at", ""))
+        at_val = r.get("at")
+
+        if hasattr(at_val, "strftime"):
+            date = at_val.strftime("%Y-%m-%d")
+            time = at_val.strftime("%H:%M:%S")
+        else:
+            date = str(at_val)[:10]
+            time = str(at_val)[-8:]
 
         rows.append({
             "username": str(r.get("userName", "")),
             "review": str(r.get("content", "")),
             "rating": int(r.get("score", 0)),
-            "date": at_val[:10],
-            "time": at_val[-8:],
+            "date": date,
+            "time": time,
             "package": package
         })
 
@@ -33,55 +40,62 @@ def save_to_google_sheet(package, reviews_data):
         return
 
     try:
-        response = requests.post(
+        requests.post(
             SHEET_URL,
-            json={"reviews": rows},
+            data=json.dumps({"reviews": rows}),
             headers={"Content-Type": "application/json"},
             timeout=30
         )
-        print("Google Sheet response:", response.text)
-
     except Exception as e:
         print("Sheet error:", str(e))
 
 
 # =========================
-# STRICT MATCH ENGINE (FINAL FIX)
+# STRICT MATCH ENGINE (FINAL RULE)
 # =========================
 def match_keyword(comment, word):
 
-    comment = str(comment)
+    comment = str(comment).strip()
     word = str(word).strip()
 
     if not word:
         return False
 
     # =========================
-    # SYMBOL / EMOJI MODE (SPACE INCLUDED)
+    # SYMBOL / EMOJI MODE
     # =========================
     def is_symbol_only(text):
         return all(not c.isalnum() for c in text)
 
     if is_symbol_only(word):
 
-        # EXACT MATCH (SPACE INCLUDED)
-        return word in comment
+        # ONLY END OF COMMENT MATCH ALLOWED
+        comment = comment.strip()
+
+        # extract last symbol block
+        match = re.search(r'([^\w\s]+)$', comment)
+
+        if not match:
+            return False
+
+        last_block = match.group(1)
+
+        return last_block == word
 
     # =========================
     # NORMAL TEXT MODE
     # =========================
-    comment = comment.lower()
-    word = word.lower()
+    comment_low = comment.lower()
+    word_low = word.lower()
 
-    escaped = re.escape(word)
-
+    escaped = re.escape(word_low)
     pattern = r'(?<!\w)' + escaped + r'(?!\w)'
 
-    return re.search(pattern, comment) is not None
+    return re.search(pattern, comment_low) is not None
 
 
 # =========================
-# MAIN ROUTE
+# FLASK ROUTE
 # =========================
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -136,7 +150,7 @@ def home():
                 break
 
         # =========================
-        # FILTER LOGIC (UNCHANGED CORE)
+        # FILTER LOGIC
         # =========================
         for r in found_reviews:
 
