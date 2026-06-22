@@ -6,7 +6,7 @@ import json
 
 app = Flask(__name__)
 
-SHEET_URL = "https://script.google.com/macros/s/AKfycbzOIABzoeCniCqVWON0506pM6351PWrtqwIVZKFI8GIfSXhh-vO2e-dHnoJOdzyPYNW/exec"
+SHEET_URL = "https://script.google.com/macros/s/AKfycbxHPvSykMBiVmHAIH6cmkbZ91dC3zxQy8MPN55UEMSZyD4jO7RwKfnfwhdHC6piVIbAxQ/exec"
 
 
 # =========================
