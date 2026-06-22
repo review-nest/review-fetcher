@@ -9,7 +9,7 @@ SHEET_URL = "https://script.google.com/macros/s/AKfycbxEDtFnk5IUVy1Kx8so8f3XKEHQ
 
 
 # =========================
-# GOOGLE SHEET SAVE
+# SAVE TO GOOGLE SHEET
 # =========================
 def save_to_google_sheet(package, reviews_data):
 
@@ -26,37 +26,52 @@ def save_to_google_sheet(package, reviews_data):
         })
 
     if not rows:
-        print("No data found")
         return
 
     try:
-        response = requests.post(
+        requests.post(
             SHEET_URL,
             json={"reviews": rows},
             headers={"Content-Type": "application/json"},
             timeout=30
         )
-        print("Google Sheet response:", response.text)
-
     except Exception as e:
         print("Sheet error:", e)
 
 
 # =========================
-# STRICT MATCH ENGINE
+# STRICT MATCH ENGINE (FINAL)
 # =========================
 def match_keyword(comment, word):
 
-    comment = str(comment).lower()
-    word = str(word).strip().lower()
+    comment = str(comment)
+    word = str(word).strip()
 
     if not word:
         return False
 
-    # escape regex (IMPORTANT)
+    # =========================
+    # SYMBOL / EMOJI MODE
+    # =========================
+    def is_symbol_only(text):
+        return all(not c.isalnum() and not c.isspace() for c in text)
+
+    if is_symbol_only(word):
+
+        # extract all symbol/emojis groups from comment
+        blocks = re.findall(r'[^\w\s]+', comment)
+
+        # EXACT MATCH ONLY
+        return word in blocks
+
+    # =========================
+    # NORMAL TEXT MODE
+    # =========================
+    comment = comment.lower()
+    word = word.lower()
+
     escaped = re.escape(word)
 
-    # strict boundary match (no substring issue)
     pattern = r'(?<!\w)' + escaped + r'(?!\w)'
 
     return re.search(pattern, comment) is not None
@@ -118,7 +133,7 @@ def home():
                 break
 
         # =========================
-        # FILTER LOGIC (FIXED)
+        # FILTER LOGIC
         # =========================
         for r in found_reviews:
 
