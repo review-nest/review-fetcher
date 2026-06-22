@@ -9,7 +9,7 @@ SHEET_URL = "https://script.google.com/macros/s/AKfycbxEDtFnk5IUVy1Kx8so8f3XKEHQ
 
 
 # =========================
-# SAVE TO GOOGLE SHEET
+# GOOGLE SHEET SAVE (FIXED)
 # =========================
 def save_to_google_sheet(package, reviews_data):
 
@@ -29,9 +29,10 @@ def save_to_google_sheet(package, reviews_data):
         return
 
     try:
+        # IMPORTANT FIX: send array directly
         requests.post(
             SHEET_URL,
-            json={"reviews": rows},
+            json=rows,
             headers={"Content-Type": "application/json"},
             timeout=30
         )
@@ -58,23 +59,23 @@ def match_keyword(comment, word):
 
     if is_symbol_only(word):
 
-        # extract all symbol/emojis groups from comment
-        blocks = re.findall(r'[^\w\s]+', comment)
+        # extract symbol blocks from comment
+        blocks = re.findall(r'[^\w\s]', comment)
 
-        # EXACT MATCH ONLY
+        # exact match only
         return word in blocks
 
     # =========================
     # NORMAL TEXT MODE
     # =========================
-    comment = comment.lower()
-    word = word.lower()
+    comment_lower = comment.lower()
+    word_lower = word.lower()
 
-    escaped = re.escape(word)
+    escaped = re.escape(word_lower)
 
     pattern = r'(?<!\w)' + escaped + r'(?!\w)'
 
-    return re.search(pattern, comment) is not None
+    return re.search(pattern, comment_lower) is not None
 
 
 # =========================
@@ -180,4 +181,4 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=5000
-    )
+)
