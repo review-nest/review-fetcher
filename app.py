@@ -3,37 +3,19 @@ from google_play_scraper import reviews, Sort
 import requests
 import re
 
-
 app = Flask(__name__)
-
 
 SHEET_URL = "https://script.google.com/macros/s/AKfycbxEDtFnk5IUVy1Kx8so8f3XKEHQosqSLyYAGXDmge9awgLWOifbS_DqE_4cmYSsx7I4/exec"
 
 
 # =========================
-# TEXT NORMALIZER (NEW FIX)
-# =========================
-def normalize(text):
-    text = str(text).lower().strip()
-
-    # remove commas and dashes only (as you wanted)
-    text = re.sub(r"[,\-]", "", text)
-
-    # fix extra spaces
-    text = re.sub(r"\s+", " ", text)
-
-    return text
-
-
-# =========================
-# SAVE TO SHEET (SAME)
+# GOOGLE SHEET SAVE
 # =========================
 def save_to_google_sheet(package, reviews_data):
 
     rows = []
 
     for r in reviews_data:
-
         rows.append({
             "username": str(r.get("userName", "")),
             "review": str(r.get("content", "")),
@@ -54,11 +36,30 @@ def save_to_google_sheet(package, reviews_data):
             headers={"Content-Type": "application/json"},
             timeout=30
         )
-
         print("Google Sheet response:", response.text)
 
     except Exception as e:
         print("Sheet error:", e)
+
+
+# =========================
+# STRICT MATCH ENGINE
+# =========================
+def match_keyword(comment, word):
+
+    comment = str(comment).lower()
+    word = str(word).strip().lower()
+
+    if not word:
+        return False
+
+    # escape regex (IMPORTANT)
+    escaped = re.escape(word)
+
+    # strict boundary match (no substring issue)
+    pattern = r'(?<!\w)' + escaped + r'(?!\w)'
+
+    return re.search(pattern, comment) is not None
 
 
 # =========================
@@ -80,6 +81,9 @@ def home():
         token = None
         found_reviews = []
 
+        # =========================
+        # FETCH REVIEWS
+        # =========================
         while True:
 
             result, token = reviews(
@@ -114,7 +118,7 @@ def home():
                 break
 
         # =========================
-        # FILTERING FIX (HINT LOGIC)
+        # FILTER LOGIC (FIXED)
         # =========================
         for r in found_reviews:
 
@@ -125,23 +129,17 @@ def home():
                 if r.get("score") != int(rating):
                     continue
 
-            # keyword / hint filter (FIXED)
+            # keyword filter
             if keyword:
 
                 words = keyword.split("\n")
                 match = False
 
-                comment_clean = normalize(comment)
-
                 for word in words:
 
-                    word = normalize(word.strip())
+                    word = word.strip()
 
-                    if not word:
-                        continue
-
-                    # strict matching (your requirement style)
-                    if word in comment_clean:
+                    if match_keyword(comment, word):
                         match = True
                         break
 
@@ -150,7 +148,9 @@ def home():
 
             data.append(r)
 
-        # Google Sheet save
+        # =========================
+        # SAVE TO SHEET
+        # =========================
         if data:
             save_to_google_sheet(package, data)
 
