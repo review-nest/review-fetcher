@@ -39,15 +39,26 @@ def save_to_google_sheet(package, reviews_data):
     if not rows:
         return
 
-    try:
-        requests.post(
-            SHEET_URL,
-            data=json.dumps({"reviews": rows}),
-            headers={"Content-Type": "application/json"},
-            timeout=30
-        )
-    except Exception as e:
-        print("Sheet error:", str(e))
+    import json
+
+try:
+
+    response = requests.post(
+        SHEET_URL,
+        data=json.dumps({
+            "package": package,
+            "reviews": rows
+        }),
+        headers={
+            "Content-Type": "application/json"
+        },
+        timeout=30
+    )
+
+    print("Google Sheet response:", response.text)
+
+except Exception as e:
+    print("Sheet error:", str(e))
 
 
 # =========================
