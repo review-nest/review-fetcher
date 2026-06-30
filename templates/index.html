@@ -8,137 +8,28 @@
 <style>
 
 *{
-    box-sizing:border-box;
+box-sizing:border-box;
 }
 
 body{
-    background:#f8fafc;
-    font-family:Inter,Arial,sans-serif;
-    padding:25px;
-    color:#111827;
+background:#f8fafc;
+font-family:Inter,Arial,sans-serif;
+padding:25px;
+color:#111827;
 }
 
 
 .box{
-
-    max-width:650px;
-    margin:auto;
-    background:#ffffff;
-    padding:28px;
-    border-radius:18px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.08);
-
+max-width:650px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:18px;
+box-shadow:0 10px 30px rgba(0,0,0,.08);
 }
 
 
-h2{
-
-    text-align:center;
-    margin-bottom:5px;
-
-}
-
-
-.subtitle{
-
-    text-align:center;
-    color:#64748b;
-    font-size:14px;
-    margin-bottom:25px;
-
-}
-
-
-
-label{
-
-    font-size:13px;
-    font-weight:600;
-    color:#334155;
-    display:block;
-    margin-top:15px;
-
-}
-
-
-
-input{
-
-    width:100%;
-    padding:12px;
-    margin-top:7px;
-    border:1px solid #e2e8f0;
-    border-radius:10px;
-    background:#f8fafc;
-    outline:none;
-
-}
-
-
-input:focus{
-
-    border-color:#2563eb;
-    background:white;
-
-}
-
-
-
-button{
-
-    margin-top:20px;
-    padding:11px 22px;
-    border:none;
-    border-radius:10px;
-    background:#2563eb;
-    color:white;
-    font-size:14px;
-    cursor:pointer;
-
-}
-
-
-button:hover{
-
-    background:#1d4ed8;
-
-}
-
-
-table{
-
-    width:100%;
-    margin-top:25px;
-    border-collapse:collapse;
-
-}
-
-
-th{
-
-    background:#111827;
-    color:white;
-    padding:10px;
-
-}
-
-
-td{
-
-    padding:10px;
-    border-bottom:1px solid #e5e7eb;
-    font-size:14px;
-
-}
-
-
-.rating{
-
-    color:#f59e0b;
-
-}
-
-select{
+input,select,textarea{
 
 width:100%;
 padding:12px;
@@ -149,18 +40,158 @@ background:#f8fafc;
 
 }
 
-textarea{
 
-    width:100%;
-    height:100px;
-    padding:12px;
-    margin-top:7px;
-    border:1px solid #e2e8f0;
-    border-radius:10px;
-    background:#f8fafc;
-    resize:none;
-    
+label{
+
+display:block;
+margin-top:15px;
+font-weight:600;
+
 }
+
+
+button{
+
+margin-top:20px;
+padding:12px 25px;
+border:0;
+border-radius:10px;
+background:#2563eb;
+color:white;
+cursor:pointer;
+
+}
+
+
+
+/* APP HEADER */
+
+.app-header{
+
+display:flex;
+align-items:center;
+gap:15px;
+padding-bottom:20px;
+border-bottom:1px solid #eee;
+margin-bottom:20px;
+
+}
+
+
+.app-icon{
+
+width:75px;
+height:75px;
+border-radius:18px;
+
+}
+
+
+.app-title{
+
+font-size:20px;
+font-weight:700;
+
+}
+
+
+.app-sub{
+
+color:#64748b;
+margin-top:5px;
+
+}
+
+
+.close{
+
+margin-left:auto;
+font-size:30px;
+color:#555;
+
+}
+
+
+
+/* REVIEW CARD */
+
+
+.review{
+
+border-bottom:1px solid #e5e7eb;
+padding:20px 0;
+
+}
+
+
+.user-row{
+
+display:flex;
+align-items:center;
+gap:12px;
+
+}
+
+
+.user-img{
+
+width:45px;
+height:45px;
+border-radius:50%;
+
+}
+
+
+.user{
+
+font-weight:600;
+
+}
+
+
+.stars{
+
+color:#009688;
+font-size:18px;
+
+}
+
+
+.date{
+
+color:#64748b;
+font-size:14px;
+
+}
+
+
+.comment{
+
+font-size:17px;
+margin:15px 0;
+
+}
+
+
+.help{
+
+color:#555;
+margin-bottom:10px;
+
+}
+
+
+.btn{
+
+border:1px solid #ddd;
+background:white;
+color:#333;
+padding:8px 25px;
+border-radius:20px;
+margin-right:10px;
+
+}
+
 
 </style>
 
@@ -173,11 +204,44 @@ textarea{
 <div class="box">
 
 
-<h2>Play Store Reviews</h2>
+{% if app_info %}
 
-<p class="subtitle">
-Fetch Google Play Store reviews by app and date
-</p>
+<div class="app-header">
+
+
+<img 
+src="{{app_info.icon}}"
+class="app-icon">
+
+
+<div>
+
+<div class="app-title">
+{{app_info.title}}
+</div>
+
+<div class="app-sub">
+Ratings and reviews
+</div>
+
+</div>
+
+
+<div class="close">
+×
+</div>
+
+
+</div>
+
+{% endif %}
+
+
+
+<h2>
+Play Store Reviews
+</h2>
+
 
 <form method="POST">
 
@@ -192,7 +256,6 @@ placeholder="Example: com.whatsapp"
 required>
 
 
-
 <label>
 Select Review Date
 </label>
@@ -202,35 +265,49 @@ type="date"
 name="date"
 required>
 
+
 <label>
 ⭐ Select Rating
 </label>
 
+
 <select name="rating">
 
-<option value="">All Stars</option>
-<option value="5">5 Star ⭐⭐⭐⭐⭐</option>
-<option value="4">4 Star ⭐⭐⭐⭐</option>
-<option value="3">3 Star ⭐⭐⭐</option>
-<option value="2">2 Star ⭐⭐</option>
-<option value="1">1 Star ⭐</option>
+<option value="">
+All Stars
+</option>
+
+<option value="5">
+⭐⭐⭐⭐⭐
+</option>
+
+<option value="4">
+⭐⭐⭐⭐
+</option>
+
+<option value="3">
+⭐⭐⭐
+</option>
+
+<option value="2">
+⭐⭐
+</option>
+
+<option value="1">
+⭐
+</option>
+
 
 </select>
 
 
-
 <label>
-🔍 Search Comment (optional)
+🔍 Search Comment
 </label>
 
-<textarea
-name="keyword"
-placeholder="Enter multiple comments
 
-Example:
-🎀
-Good app
-Excellent app"></textarea>
+<textarea
+name="keyword"></textarea>
 
 
 <button>
@@ -244,67 +321,90 @@ Fetch Reviews
 
 {% if reviews %}
 
-<p>
-Total: {{reviews|length}}
-</p>
 
-
-<table>
-
-
-<tr>
-<th>Profile</th>
-<th>User</th>
-<th>Review</th>
-<th>Rating</th>
-<th>Date</th>
-<th>Time</th>
-<th>Package ID</th>
-</tr>
+<h3>
+Total Reviews: {{reviews|length}}
+</h3>
 
 
 
 {% for r in reviews %}
 
-<tr>
 
-<td>
-    <img
-    src="{{r.userImage}}"
-    width="40"
-    height="40"
-    style="border-radius:50%;">
-</td>
-
-<td>{{r.userName}}</td>
-
-<td>{{r.content}}</td>
-
-<td class="star">
-{{r.score}} ⭐
-</td>
-
-<td>
-{{r.at.strftime("%Y-%m-%d")}}
-</td>
+<div class="review">
 
 
-<td>
-{{r.at.strftime("%H:%M:%S")}}
-</td>
+
+<div class="user-row">
 
 
-<td>
-{{package}}
-</td>
+<img
+src="{{r.userImage}}"
+class="user-img">
 
 
-</tr>
+<div>
 
+
+<div class="user">
+{{r.userName}}
+</div>
+
+
+<div class="stars">
+
+{% for i in range(r.score) %}
+⭐
 {% endfor %}
 
+</div>
 
-</table>
+
+<div class="date">
+
+{{r.at.strftime("%B %d, %Y")}}
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<div class="comment">
+
+{{r.content}}
+
+</div>
+
+
+
+<div class="help">
+
+Did you find this helpful?
+
+</div>
+
+
+<button class="btn">
+Yes
+</button>
+
+
+<button class="btn">
+No
+</button>
+
+
+
+</div>
+
+
+
+{% endfor %}
 
 
 {% endif %}
