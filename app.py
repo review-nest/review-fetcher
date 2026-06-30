@@ -107,9 +107,15 @@ try:
         timeout=30
     )
 
-    sheet_link = response.text.strip()
 
-    print("Google Sheet Link:", sheet_link)
+    if "successfully" in response.text.lower():
+
+        print("Reviews saved successfully")
+
+    else:
+
+        print("Sheet response:", response.text)
+
 
 
 except Exception as e:
