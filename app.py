@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template
-from google_play_scraper import reviews, Sort
+from google_play_scraper import reviews, Sort, app
 import requests
 import re
 import json
@@ -180,12 +180,27 @@ def home():
 
     data = []
     package = ""
+    app_info = {}
+
 
 
     if request.method == "POST":
 
 
         package = request.form["package"]
+
+
+        # APP HEADER DATA
+
+        try:
+
+            app_info = app(package)
+
+        except:
+
+            app_info = {}
+
+
 
         date = request.form["date"]
 
@@ -334,7 +349,8 @@ def home():
     return render_template(
         "index.html",
         reviews=data,
-        package=package
+        package=package,
+        app_info=app_info
     )
 
 
