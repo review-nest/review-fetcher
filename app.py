@@ -92,38 +92,28 @@ def save_to_google_sheet(package, reviews_data):
         return
 
 
-    try:
+try:
 
-        response = requests.post(
+    response = requests.post(
+        SHEET_URL,
+        data=json.dumps({
+            "package": package,
+            "reviews": rows
+        }),
+        headers={
+            "Content-Type": "application/json"
+        },
+        timeout=30
+    )
 
-            SHEET_URL,
+    sheet_link = response.text.strip()
 
-            data=json.dumps({
-
-                "package": package,
-                "reviews": rows
-
-            }),
-
-            headers={
-                "Content-Type": "application/json"
-            },
-
-            timeout=30
-
-        )
+    print("Google Sheet Link:", sheet_link)
 
 
-        sheet_link = response.text.strip()
+except Exception as e:
 
-print("Google Sheet Link:", sheet_link)
-
-
-    except Exception as e:
-
-        print("Sheet error:", str(e))
-
-
+    print("Sheet error:", str(e))
 
 
 
