@@ -98,6 +98,7 @@ try:
         SHEET_URL,
         data=json.dumps({
             "package": package,
+            "search_date": date,
             "reviews": rows
         }),
         headers={
