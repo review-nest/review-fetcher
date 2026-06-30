@@ -7,7 +7,7 @@ import json
 app = Flask(__name__)
 
 
-SHEET_URL = "https://script.google.com/macros/s/AKfycbzOIABzoeCniCqVWON0506pM6351PWrtqwIVZKFI8GIfSXhh-vO2e-dHnoJOdzyPYNW/exec"
+SHEET_URL = "https://script.google.com/macros/s/AKfycbxHPvSykMBiVmHAIH6cmkbZ91dC3zxQy8MPN55UEMSZyD4jO7RwKfnfwhdHC6piVIbAxQ/exec"
 
 
 # =========================
@@ -15,7 +15,7 @@ SHEET_URL = "https://script.google.com/macros/s/AKfycbzOIABzoeCniCqVWON0506pM635
 # =========================
 
 BOT_TOKEN = "8998711422:AAHFqUS18433G7FgaEU6cp4CbqEW0fwcM3Y"
-CHAT_ID = "991906552"
+CHAT_ID = "6371284862"
 
 
 def send_bot_message(app_name, date, total):
