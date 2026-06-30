@@ -114,7 +114,9 @@ def save_to_google_sheet(package, reviews_data):
         )
 
 
-        print("Google Sheet response:", response.text)
+        sheet_link = response.text.strip()
+
+print("Google Sheet Link:", sheet_link)
 
 
     except Exception as e:
