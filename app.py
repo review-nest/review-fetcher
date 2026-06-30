@@ -26,8 +26,7 @@ def send_bot_message(app_name, date, total):
 📅 Date: {date}
 📊 Total Reviews: {total}
 
-📄 Google Sheet:
-{SHEET_URL}
+📄 Excel Sheet: Download Report
 """
 
 
@@ -92,35 +91,35 @@ def save_to_google_sheet(package, reviews_data):
         return
 
 
-try:
+    try:
 
-    response = requests.post(
-        SHEET_URL,
-        data=json.dumps({
-            "package": package,
-            "search_date": date,
-            "reviews": rows
-        }),
-        headers={
-            "Content-Type": "application/json"
-        },
-        timeout=30
-    )
-
-
-    if "successfully" in response.text.lower():
-
-        print("Reviews saved successfully")
-
-    else:
-
-        print("Sheet response:", response.text)
+        response = requests.post(
+            SHEET_URL,
+            data=json.dumps({
+                "package": package,
+                "search_date": date,
+                "reviews": rows
+            }),
+            headers={
+                "Content-Type": "application/json"
+            },
+            timeout=30
+        )
 
 
+        if "successfully" in response.text.lower():
 
-except Exception as e:
+            print("Reviews saved successfully")
 
-    print("Sheet error:", str(e))
+        else:
+
+            print("Sheet response:", response.text)
+
+
+
+    except Exception as e:
+
+        print("Sheet error:", str(e))
 
 
 
@@ -318,35 +317,24 @@ def home():
 
 
             save_to_google_sheet(
-
                 package,
-
                 data
-
             )
 
 
             send_bot_message(
-
                 package,
-
                 date,
-
                 len(data)
-
             )
 
 
 
 
     return render_template(
-
         "index.html",
-
         reviews=data,
-
         package=package
-
     )
 
 
@@ -357,9 +345,6 @@ if __name__ == "__main__":
 
 
     app.run(
-
         host="0.0.0.0",
-
         port=5000
-
     )
