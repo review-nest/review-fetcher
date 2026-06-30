@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template
-from google_play_scraper import reviews, Sort, app
+from google_play_scraper import reviews, Sort, app as play_app
 import requests
 import re
 import json
@@ -107,19 +107,15 @@ def save_to_google_sheet(package, reviews_data):
         )
 
 
-        if "successfully" in response.text.lower():
-
-            print("Reviews saved successfully")
-
-        else:
-
-            print("Sheet response:", response.text)
+        print(response.text)
 
 
 
     except Exception as e:
 
         print("Sheet error:", str(e))
+
+
 
 
 
@@ -171,6 +167,7 @@ def match_keyword(comment, word):
 
 
 
+
 # =========================
 # MAIN ROUTE
 # =========================
@@ -179,27 +176,37 @@ def match_keyword(comment, word):
 def home():
 
     data = []
-    package = ""
+
+    package = request.form.get("package","")
+
     app_info = {}
 
 
 
-    if request.method == "POST":
+    # AUTO APP ICON + NAME
 
-
-        package = request.form["package"]
-
-
-        # APP HEADER DATA
+    if package:
 
         try:
 
-            app_info = app(package)
+            app_info = play_app(
+                package,
+                country="in",
+                lang="en"
+            )
 
-        except:
+
+        except Exception as e:
+
+            print("App info error:",e)
 
             app_info = {}
 
+
+
+
+
+    if request.method == "POST":
 
 
         date = request.form["date"]
@@ -207,6 +214,7 @@ def home():
         rating = request.form.get("rating")
 
         keyword = request.form.get("keyword")
+
 
 
         token = None
@@ -304,13 +312,9 @@ def home():
                 for word in words:
 
 
-                    word = word.strip()
+                    if match_keyword(comment, word.strip()):
 
-
-
-                    if match_keyword(comment, word):
-
-                        match = True
+                        match=True
 
                         break
 
@@ -338,7 +342,7 @@ def home():
 
 
             send_bot_message(
-                package,
+                app_info.get("title",package),
                 date,
                 len(data)
             )
@@ -346,11 +350,17 @@ def home():
 
 
 
+
     return render_template(
+
         "index.html",
+
         reviews=data,
+
         package=package,
+
         app_info=app_info
+
     )
 
 
