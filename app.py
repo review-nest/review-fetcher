@@ -221,7 +221,7 @@ def home():
 
         found_reviews = []
 
-
+       MAX_REVIEWS = 50000
 
         while True:
 
@@ -236,7 +236,7 @@ def home():
 
                 sort=Sort.NEWEST,
 
-                count=500,
+                count=200,
 
                 continuation_token=token
 
@@ -276,7 +276,7 @@ def home():
 
 
 
-            if len(found_reviews) >= 5000:
+            if len(found_reviews) >= MAX_REVIEWS:
 
                 break
 
