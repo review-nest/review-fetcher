@@ -8,11 +8,7 @@ app = Flask(name)
 
 SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzJwok3reHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
 
-=========================
 
-TELEGRAM BOT
-
-=========================
 
 BOT_TOKEN = "8998711422:AAHFqUS18433G7FgaEU6cp4CbqEW0fwcM3Y"
 CHAT_ID = "6371284862"
@@ -45,11 +41,7 @@ except Exception as e:
 
     print("Bot error:", e)
 
-=========================
 
-GOOGLE SHEET SAVE
-
-=========================
 
 def save_to_google_sheet(package, reviews_data):
 
