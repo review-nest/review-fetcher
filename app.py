@@ -4,23 +4,23 @@ import requests
 import re
 import json
 
-app = Flask(__name__)
-
+app = Flask(name)
 
 SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzJwok3reHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
 
+=========================
 
-# =========================
-# TELEGRAM BOT
-# =========================
+TELEGRAM BOT
+
+=========================
 
 BOT_TOKEN = "8998711422:AAHFqUS18433G7FgaEU6cp4CbqEW0fwcM3Y"
 CHAT_ID = "6371284862"
 
-
 def send_bot_message(app_name, date, total):
 
-    message = f"""
+message = f"""
+
 ✅ App Synced: {app_name}
 
 📅 Date: {date}
@@ -29,348 +29,336 @@ def send_bot_message(app_name, date, total):
 📄 Excel Sheet: Download Report
 """
 
+try:  
 
-    try:
-
-        requests.post(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-            json={
-                "chat_id": CHAT_ID,
-                "text": message
-            },
-            timeout=10
-        )
-
-
-    except Exception as e:
-
-        print("Bot error:", e)
+    requests.post(  
+        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",  
+        json={  
+            "chat_id": CHAT_ID,  
+            "text": message  
+        },  
+        timeout=10  
+    )  
 
 
+except Exception as e:  
 
+    print("Bot error:", e)
 
-# =========================
-# GOOGLE SHEET SAVE
-# =========================
+=========================
+
+GOOGLE SHEET SAVE
+
+=========================
 
 def save_to_google_sheet(package, reviews_data):
 
-    rows = []
+rows = []  
 
 
-    for r in reviews_data:
+for r in reviews_data:  
 
-        at_val = r.get("at")
-
-
-        if hasattr(at_val, "strftime"):
-
-            date = at_val.strftime("%Y-%m-%d")
-            time = at_val.strftime("%H:%M:%S")
+    at_val = r.get("at")  
 
 
-        else:
+    if hasattr(at_val, "strftime"):  
 
-            date = str(at_val)[:10]
-            time = str(at_val)[-8:]
-
-
-        rows.append({
-
-            "username": str(r.get("userName", "")),
-            "review": str(r.get("content", "")),
-            "rating": int(r.get("score", 0)),
-            "date": date,
-            "time": time,
-            "package": package
-
-        })
+        date = at_val.strftime("%Y-%m-%d")  
+        time = at_val.strftime("%H:%M:%S")  
 
 
-    if not rows:
-        return
+    else:  
+
+        date = str(at_val)[:10]  
+        time = str(at_val)[-8:]  
 
 
-    try:
+    rows.append({  
 
-        response = requests.post(
-            SHEET_URL,
-            data=json.dumps({
-                "package": package,
-                "search_date": date,
-                "reviews": rows
-            }),
-            headers={
-                "Content-Type": "application/json"
-            },
-            timeout=30
-        )
+        "username": str(r.get("userName", "")),  
+        "review": str(r.get("content", "")),  
+        "rating": int(r.get("score", 0)),  
+        "date": date,  
+        "time": time,  
+        "package": package  
+
+    })  
 
 
-        print(response.text)
+if not rows:  
+    return  
 
 
+try:  
 
-    except Exception as e:
+    response = requests.post(  
+        SHEET_URL,  
+        data=json.dumps({  
+            "package": package,  
+            "search_date": date,  
+            "reviews": rows  
+        }),  
+        headers={  
+            "Content-Type": "application/json"  
+        },  
+        timeout=30  
+    )  
 
-        print("Sheet error:", str(e))
+
+    print(response.text)  
 
 
 
+except Exception as e:  
 
+    print("Sheet error:", str(e))
 
-# =========================
-# MATCH SYSTEM
-# =========================
+=========================
+
+MATCH SYSTEM
+
+=========================
 
 def match_keyword(comment, word):
 
-    comment = str(comment).strip()
-    word = str(word).strip()
+comment = str(comment).strip()  
+word = str(word).strip()  
 
 
-    if not word:
-        return False
+if not word:  
+    return False  
 
 
-    def is_symbol_only(text):
+def is_symbol_only(text):  
 
-        return all(not c.isalnum() for c in text)
-
-
-
-    if is_symbol_only(word):
-
-        match = re.search(
-            r'([^\w\s]+)$',
-            comment.strip()
-        )
-
-
-        if not match:
-            return False
-
-
-        return match.group(1) == word
+    return all(not c.isalnum() for c in text)  
 
 
 
-    pattern = r'(?<!\w)' + re.escape(word.lower()) + r'(?!\w)'
+if is_symbol_only(word):  
+
+    match = re.search(  
+        r'([^\w\s]+)$',  
+        comment.strip()  
+    )  
 
 
-    return re.search(
-        pattern,
-        comment.lower()
-    ) is not None
+    if not match:  
+        return False  
+
+
+    return match.group(1) == word  
 
 
 
+pattern = r'(?<!\w)' + re.escape(word.lower()) + r'(?!\w)'  
 
 
+return re.search(  
+    pattern,  
+    comment.lower()  
+) is not None
 
-# =========================
-# MAIN ROUTE
-# =========================
+=========================
+
+MAIN ROUTE
+
+=========================
 
 @app.route("/", methods=["GET", "POST"])
 def home():
 
-    data = []
+data = []  
 
-    package = request.form.get("package","")
+package = request.form.get("package","")  
 
-    app_info = {}
+app_info = {}  
 
 
 
-    # AUTO APP ICON + NAME
+# AUTO APP ICON + NAME  
 
-    if package:
+if package:  
 
-        try:
+    try:  
 
-            app_info = play_app(
-                package,
-                country="in",
-                lang="en"
-            )
+        app_info = play_app(  
+            package,  
+            country="in",  
+            lang="en"  
+        )  
 
 
-        except Exception as e:
+    except Exception as e:  
 
-            print("App info error:",e)
+        print("App info error:",e)  
 
-            app_info = {}
+        app_info = {}  
 
 
 
 
 
-    if request.method == "POST":
+if request.method == "POST":  
 
 
-        date = request.form["date"]
+    date = request.form["date"]  
 
-        rating = request.form.get("rating")
+    rating = request.form.get("rating")  
 
-        keyword = request.form.get("keyword")
+    keyword = request.form.get("keyword")  
 
 
 
-        token = None
+    token = None  
 
-        found_reviews = []
+    found_reviews = []  
 
-       MAX_REVIEWS = 50000
 
-        while True:
 
+    while True:  
 
-            result, token = reviews(
 
-                package,
+        result, token = reviews(  
 
-                country="in",
+            package,  
 
-                lang="en",
+            country="in",  
 
-                sort=Sort.NEWEST,
+            lang="en",  
 
-                count=200,
+            sort=Sort.NEWEST,  
 
-                continuation_token=token
+            count=200,  
 
-            )
+            continuation_token=token  
 
+        )  
 
-            if not result:
-                break
 
+        if not result:  
+            break  
 
 
-            stop = False
 
+        stop = False  
 
-            for r in result:
 
+        for r in result:  
 
-                review_date = r["at"].strftime("%Y-%m-%d")
 
+            review_date = r["at"].strftime("%Y-%m-%d")  
 
-                if review_date == date:
 
-                    found_reviews.append(r)
+            if review_date == date:  
 
+                found_reviews.append(r)  
 
-                if review_date < date:
 
-                    stop = True
+            if review_date < date:  
 
-                    break
+                stop = True  
 
+                break  
 
 
-            if stop or token is None:
 
-                break
+        if stop or token is None:  
 
+            break  
 
 
-            if len(found_reviews) >= MAX_REVIEWS:
 
-                break
+        if len(found_reviews) >= 50000:  
 
+            break  
 
 
 
 
-        for r in found_reviews:
 
+    for r in found_reviews:  
 
-            comment = r.get("content","")
 
+        comment = r.get("content","")  
 
 
-            if rating:
 
-                if r.get("score") != int(rating):
+        if rating:  
 
-                    continue
+            if r.get("score") != int(rating):  
 
+                continue  
 
 
 
-            if keyword:
 
+        if keyword:  
 
-                words = keyword.split("\n")
 
-                match = False
+            words = keyword.split("\n")  
 
+            match = False  
 
 
-                for word in words:
 
+            for word in words:  
 
-                    if match_keyword(comment, word.strip()):
 
-                        match=True
+                if match_keyword(comment, word.strip()):  
 
-                        break
+                    match=True  
 
+                    break  
 
 
-                if not match:
 
-                    continue
+            if not match:  
 
+                continue  
 
 
-            data.append(r)
 
+        data.append(r)  
 
 
 
 
-        if data:
 
+    if data:  
 
-            save_to_google_sheet(
-                package,
-                data
-            )
 
+        save_to_google_sheet(  
+            package,  
+            data  
+        )  
 
-            send_bot_message(
-                app_info.get("title",package),
-                date,
-                len(data)
-            )
 
+        send_bot_message(  
+            app_info.get("title",package),  
+            date,  
+            len(data)  
+        )  
 
 
 
 
-    return render_template(
 
-        "index.html",
+return render_template(  
 
-        reviews=data,
+    "index.html",  
 
-        package=package,
+    reviews=data,  
 
-        app_info=app_info
+    package=package,  
 
-    )
+    app_info=app_info  
 
+)
 
+if name == "main":
 
-
-
-if __name__ == "__main__":
-
-
-    app.run(
-        host="0.0.0.0",
-        port=5000
-    )
+app.run(  
+    host="0.0.0.0",  
+    port=5000  
+)
