@@ -340,11 +340,7 @@
                                 {% for i in range(r.score if r.score else 0) %}★{% endfor %}
                             </div>
                             <div class="date">
-                                {% if hasattr(r.at, 'strftime') %}
-                                    {{ r.at.strftime("%B %d, %Y") }}
-                                {% else %}
-                                    {{ r.at }}
-                                {% endif %}
+                                {{ r.at.strftime("%B %d, %Y") if r.at and r.at.strftime is defined else r.at }}
                             </div>
                         </div>
                     </div>
@@ -367,5 +363,4 @@
     </div>
 
 </body>
-  </html>
-  
+</html>
