@@ -7,12 +7,8 @@ import re
 import time
 import os
 from PIL import Image, ImageDraw, ImageFont
-
-# MoviePy Compatibility
-try:
-    from moviepy.editor import ImageClip, concatenate_videoclips
-except ImportError:
-    from moviepy import ImageClip, concatenate_videoclips
+import cv2
+import numpy as np
 
 app = Flask(__name__)
 
@@ -138,7 +134,7 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# SAFE FRAME GENERATOR (No Font Crash)
+# SAFE FRAME GENERATOR
 # =====================================
 def create_review_frame(user_name, rating_score, content, app_title, output_path):
     img = Image.new('RGB', (720, 1280), color='#f1f5f9')
@@ -167,14 +163,14 @@ def create_review_frame(user_name, rating_score, content, app_title, output_path
     if current_line: lines.append(current_line.strip())
 
     y = 420
-    for line in lines[:10]:
+    for line in lines[:15]:
         draw.text((70, y), line, fill="#1e293b")
         y += 40
 
     img.save(output_path)
 
 # =====================================
-# DIRECT PAYLOAD VIDEO GENERATOR
+# DIRECT PAYLOAD VIDEO GENERATOR (OPENCV)
 # =====================================
 @app.route("/generate-video", methods=["POST"])
 def generate_video():
@@ -186,10 +182,17 @@ def generate_video():
         if not reviews_list:
             return "No reviews received to build video", 400
 
-        clips = []
+        out_path = "/tmp/reviews_video.mp4" if os.path.exists("/tmp") else "reviews_video.mp4"
+        
+        # Initialize OpenCV Video Writer
+        width, height = 720, 1280
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Universal standard MP4 format
+        fps = 1 # 1 frame per second
+        video = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+
         temp_files = []
 
-        # Process max 10 reviews for smooth render
+        # Process max 10 reviews
         for idx, r in enumerate(reviews_list[:10]):
             frame_path = f"/tmp/frame_{idx}.png" if os.path.exists("/tmp") else f"frame_{idx}.png"
             create_review_frame(
@@ -201,22 +204,17 @@ def generate_video():
             )
             temp_files.append(frame_path)
             
-            # Create Clip with duration
-            clip = ImageClip(frame_path).set_duration(3.0)
-            clips.append(clip)
+            # Read image back using OpenCV
+            frame = cv2.imread(frame_path)
+            
+            # Write the same frame 3 times (Shows each review for 3 seconds)
+            video.write(frame)
+            video.write(frame)
+            video.write(frame)
 
-        final_clip = concatenate_videoclips(clips, method="compose")
-        out_path = "/tmp/reviews_video.mp4" if os.path.exists("/tmp") else "reviews_video.mp4"
-        
-        final_clip.write_videofile(
-            out_path, 
-            fps=24, 
-            codec="libx264", 
-            audio=False, 
-            preset="ultrafast"
-        )
+        video.release() # Finalize and save video
 
-        # Cleanup Frame Images
+        # Cleanup Image Frames
         for f in temp_files:
             if os.path.exists(f): 
                 try: os.remove(f)
@@ -251,4 +249,4 @@ def home():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-                                             
+    
