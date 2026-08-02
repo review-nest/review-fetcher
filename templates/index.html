@@ -35,9 +35,7 @@
             max-width: 680px;
         }
 
-        /* ========================================================
-           CLEAN & PROFESSIONAL AESTHETIC FORM CARD
-           ======================================================== */
+        /* FORM CARD */
         .form-card {
             background: #ffffff;
             padding: 28px 26px;
@@ -132,9 +130,7 @@
             background: #1d4ed8;
         }
 
-        /* ========================================================
-           AESTHETIC LOADING SPINNER
-           ======================================================== */
+        /* SPINNER OVERLAY */
         #loading-overlay, #video-loading-overlay {
             display: none;
             position: fixed;
@@ -208,9 +204,7 @@
 
         .video-btn:hover { background: #6d28d9; }
 
-        /* ========================================================
-           DESKTOP MODE PLAY STORE MODAL (CLEAN & ACCURATE)
-           ======================================================== */
+        /* PLAY STORE MODAL CARD */
         .play-modal-card {
             background: #ffffff;
             border-radius: 14px;
@@ -219,7 +213,6 @@
             overflow: hidden;
         }
 
-        /* FIXED STICKY HEADER */
         .modal-header {
             position: sticky;
             top: 0;
@@ -265,7 +258,6 @@
             cursor: pointer;
         }
 
-        /* CONTINUOUS UNLOCKED REVIEWS LIST */
         .reviews-list {
             padding: 8px 20px 20px 20px;
         }
@@ -426,7 +418,7 @@
                         <span class="form-hint">Select the target review publication date.</span>
                     </div>
 
-                    <!-- STAR RATING SELECT WITH ICONS -->
+                    <!-- STAR RATING SELECT -->
                     <div class="form-group full-width">
                         <label class="form-label">Filter Rating</label>
                         <select class="form-select" name="rating">
@@ -462,7 +454,7 @@
                 <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
                 <div class="btn-group">
                     <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
-                    <button class="download-btn video-btn" onclick="generateVideo()">🎥 Generate Video</button>
+                    <button class="download-btn video-btn" id="generate-video-btn" onclick="generateVideo()">🎥 Generate Video</button>
                 </div>
             </div>
 
@@ -549,29 +541,36 @@
         }
 
         function generateVideo() {
-            document.getElementById('video-loading-overlay').style.display = 'flex';
+            const loader = document.getElementById('video-loading-overlay');
+            if (loader) loader.style.display = 'flex';
 
             fetch('/generate-video', {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             })
             .then(response => {
-                if (!response.ok) throw new Error('Video generation failed');
+                if (!response.ok) {
+                    throw new Error("Failed to generate video");
+                }
                 return response.blob();
             })
             .then(blob => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
+                a.style.display = 'none';
                 a.href = url;
                 a.download = `PlayStore_Reviews_Video_${new Date().toISOString().slice(0,10)}.mp4`;
                 document.body.appendChild(a);
                 a.click();
-                a.remove();
-                
-                document.getElementById('video-loading-overlay').style.display = 'none';
+                window.URL.revokeObjectURL(url);
+
+                if (loader) loader.style.display = 'none';
             })
             .catch(error => {
-                alert("Video generation failed! Make sure reviews are loaded.");
-                document.getElementById('video-loading-overlay').style.display = 'none';
+                alert("Video generation failed! Make sure reviews are loaded on screen.");
+                if (loader) loader.style.display = 'none';
             });
         }
     </script>
