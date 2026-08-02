@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, session
 from google_play_scraper import reviews, Sort, app as play_app
 import threading
 import requests
@@ -16,6 +16,7 @@ except ImportError:
     from moviepy.editor import ImageClip, concatenate_videoclips
 
 app = Flask(__name__)
+app.secret_key = "playstore_review_video_secret_key"
 
 # =====================================
 # CONFIG
@@ -27,20 +28,13 @@ CHAT_ID = "6371284862"
 MAX_FETCH = 50000
 BATCH_SIZE = 300
 
-# Global variable to hold last fetched reviews for video rendering
-CURRENT_FETCHED_REVIEWS = []
-CURRENT_APP_INFO = {}
+# Global storage (Worker fallback)
+STORED_REVIEWS = {}
 
 # =====================================
 # UTILITY: EXTRACT PACKAGE NAME FROM LINK/ID
 # =====================================
 def extract_package_id(input_str):
-    """
-    Extracts package name if a full Play Store URL is provided.
-    Examples:
-    - com.whatsapp -> com.whatsapp
-    - https://play.google.com/store/apps/details?id=com.whatsapp -> com.whatsapp
-    """
     input_str = input_str.strip()
     match = re.search(r'id=([a-zA-Z0-9_.]+)', input_str)
     if match:
@@ -89,9 +83,6 @@ def save_batch(package, search_date, rows):
         print("Batch Upload Error :", e)
 
 def process_and_upload_async(package, search_date, reviews_data, app_title):
-    """
-    Background worker so Web UI doesn't freeze or timeout.
-    """
     rows = []  
     for r in reviews_data:  
         at = r.get("at")  
@@ -118,7 +109,6 @@ def process_and_upload_async(package, search_date, reviews_data, app_title):
 
     for i in range(0, len(rows), BATCH_SIZE):  
         batch = rows[i:i + BATCH_SIZE]  
-        print(f"Uploading Batch {i + len(batch)}/{len(rows)}")  
         save_batch(package, rows[0]["date"], batch)  
         time.sleep(0.3)  
 
@@ -250,53 +240,40 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
 
             data.append(review)  
 
-        print(f"Scanned : {total_scanned} | Matched : {len(data)}")  
-
         if stop or token is None or total_scanned >= MAX_FETCH:  
             break  
 
         time.sleep(0.1)  
 
-    print("--------------------------------")  
-    print("Total Reviews Scanned :", total_scanned)  
-    print("Matched Reviews :", len(data))  
-    print("--------------------------------")  
-
     return data  
 
 # =====================================
-# VIDEO RENDER HELPER FUNCTION
+# VIDEO FRAME MAKER
 # =====================================
 def create_review_frame(user_name, rating_score, content, app_title, output_path):
-    """Draws a clean 1080x1920 mobile portrait frame for video generation."""
     img = Image.new('RGB', (1080, 1920), color='#f8fafc')
     draw = ImageDraw.Draw(img)
 
-    try:
-        font_header = ImageFont.truetype("arial.ttf", 45)
-        font_sub = ImageFont.truetype("arial.ttf", 35)
-        font_content = ImageFont.truetype("arial.ttf", 36)
-    except:
-        font_header = font_sub = font_content = ImageFont.load_default()
+    font = ImageFont.load_default()
 
     # White Aesthetic Card Frame
     draw.rounded_rectangle([80, 450, 1000, 1450], radius=32, fill="#ffffff", outline="#dadce0", width=2)
 
     # Header - App Name
-    draw.text((120, 510), str(app_title)[:30], fill="#202124", font=font_header)
-    draw.text((120, 570), "Play Store Ratings & Reviews", fill="#5f6368", font=font_sub)
+    draw.text((120, 510), str(app_title)[:30], fill="#202124", font=font)
+    draw.text((120, 570), "Play Store Ratings & Reviews", fill="#5f6368", font=font)
 
     # Divider Line
     draw.line([(120, 640), (960, 640)], fill="#e8eaed", width=2)
 
     # User Info & Stars
-    draw.text((120, 680), f"User: {user_name}", fill="#202124", font=font_header)
+    draw.text((120, 680), f"User: {user_name}", fill="#202124", font=font)
     
-    stars = "★" * int(rating_score)
-    draw.text((120, 750), f"Rating: {stars}", fill="#01875f", font=font_header)
+    stars = "★" * int(rating_score if rating_score else 5)
+    draw.text((120, 750), f"Rating: {stars}", fill="#01875f", font=font)
 
     # Review Content Wrapped
-    words = content.split()
+    words = str(content).split()
     lines = []
     current_line = ""
     for word in words:
@@ -310,7 +287,7 @@ def create_review_frame(user_name, rating_score, content, app_title, output_path
 
     y_offset = 840
     for line in lines[:8]:
-        draw.text((120, y_offset), line, fill="#3c4043", font=font_content)
+        draw.text((120, y_offset), line, fill="#3c4043", font=font)
         y_offset += 55
 
     img.save(output_path)
@@ -320,17 +297,24 @@ def create_review_frame(user_name, rating_score, content, app_title, output_path
 # =====================================
 @app.route("/generate-video", methods=["POST"])
 def generate_video():
-    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
-    
-    if not CURRENT_FETCHED_REVIEWS:
-        return "No reviews available to generate video", 400
-
     try:
+        req_data = request.get_json(silent=True) or {}
+        reviews_list = req_data.get("reviews")
+
+        if not reviews_list:
+            reviews_list = session.get("last_reviews", [])
+
+        if not reviews_list:
+            reviews_list = STORED_REVIEWS.get("latest", [])
+
+        if not reviews_list:
+            return "No reviews found in session to render video", 400
+
+        app_title = STORED_REVIEWS.get("title", "App Reviews")
         clips = []
         temp_images = []
-        app_title = CURRENT_APP_INFO.get("title", "App Reviews")
 
-        sample_reviews = CURRENT_FETCHED_REVIEWS[:10]
+        sample_reviews = reviews_list[:10]
 
         for idx, r in enumerate(sample_reviews):
             img_filename = f"temp_frame_{idx}.png"
@@ -358,12 +342,13 @@ def generate_video():
 
         for img_file in temp_images:
             if os.path.exists(img_file):
-                os.remove(img_file)
+                try: os.remove(img_file)
+                except: pass
 
         return send_file(output_filename, as_attachment=True, mimetype="video/mp4")
 
     except Exception as e:
-        print("Video Generation Server Error:", e)
+        print("CRITICAL VIDEO GENERATION ERROR:", str(e))
         return str(e), 500
 
 # =====================================
@@ -371,7 +356,6 @@ def generate_video():
 # =====================================
 @app.route("/", methods=["GET", "POST"])
 def home():
-    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
     data = []  
     raw_input = ""  
     package = ""
@@ -389,16 +373,19 @@ def home():
             app_info = get_app_info(package)  
 
         if package and date:  
-            print("=" * 50)  
-            print("Package ID :", package)  
-            print("Date :", date)  
-            print("Rating :", rating)  
-            print("=" * 50)  
-
             data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)  
 
-            CURRENT_FETCHED_REVIEWS = data
-            CURRENT_APP_INFO = app_info
+            # Save in Session and Global Storage
+            session["last_reviews"] = [
+                {
+                    "userName": r.get("userName", "Google User"),
+                    "score": r.get("score", 5),
+                    "content": r.get("content", "")
+                }
+                for r in data
+            ]
+            STORED_REVIEWS["latest"] = session["last_reviews"]
+            STORED_REVIEWS["title"] = app_info.get("title", package)
 
             if len(data) > 0:  
                 thread = threading.Thread(
@@ -415,21 +402,8 @@ def home():
     )  
 
 # =====================================
-# HEALTH CHECK
-# =====================================
-@app.route("/health")
-def health():
-    return {  
-        "status": "ok",  
-        "service": "Google Play Review Fetcher"  
-    }
-
-# =====================================
 # RUN SERVER
 # =====================================
 if __name__ == "__main__":
-    print("=" * 50)  
-    print("Google Play Review Fetcher Started")  
-    print("=" * 50)  
     app.run(host="0.0.0.0", port=5000, debug=True)
-            
+    
