@@ -3,5 +3,6 @@ google-play-scraper
 requests
 Pillow
 moviepy
+imageio
 imageio-ffmpeg
 gunicorn
