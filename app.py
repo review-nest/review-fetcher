@@ -1,11 +1,14 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 from google_play_scraper import reviews, Sort, app as play_app
 import threading
 import requests
 import json
 import re
 import time
+import os
 from datetime import datetime
+from PIL import Image, ImageDraw, ImageFont
+from moviepy.editor import ImageClip, concatenate_videoclips
 
 app = Flask(__name__)
 
@@ -18,6 +21,10 @@ CHAT_ID = "6371284862"
 
 MAX_FETCH = 50000
 BATCH_SIZE = 300
+
+# Global variable to hold last fetched reviews for video rendering
+CURRENT_FETCHED_REVIEWS = []
+CURRENT_APP_INFO = {}
 
 # =====================================
 # UTILITY: EXTRACT PACKAGE NAME FROM LINK/ID
@@ -254,10 +261,105 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
+# VIDEO RENDER HELPER FUNCTION
+# =====================================
+def create_review_frame(user_name, rating_score, content, app_title, output_path):
+    """Draws a clean 1080x1920 mobile portrait frame for video generation."""
+    img = Image.new('RGB', (1080, 1920), color='#f8fafc')
+    draw = ImageDraw.Draw(img)
+
+    try:
+        font_header = ImageFont.truetype("arial.ttf", 45)
+        font_sub = ImageFont.truetype("arial.ttf", 35)
+        font_content = ImageFont.truetype("arial.ttf", 36)
+    except:
+        font_header = font_sub = font_content = ImageFont.load_default()
+
+    # White Aesthetic Card Frame
+    draw.rounded_rectangle([80, 450, 1000, 1450], radius=32, fill="#ffffff", outline="#dadce0", width=2)
+
+    # Header - App Name
+    draw.text((120, 510), str(app_title)[:30], fill="#202124", font=font_header)
+    draw.text((120, 570), "Play Store Ratings & Reviews", fill="#5f6368", font=font_sub)
+
+    # Divider Line
+    draw.line([(120, 640), (960, 640)], fill="#e8eaed", width=2)
+
+    # User Info & Stars
+    draw.text((120, 680), f"👤  {user_name}", fill="#202124", font=font_header)
+    
+    stars = "★" * int(rating_score)
+    draw.text((120, 750), stars, fill="#01875f", font=font_header)
+
+    # Review Content Wrapped
+    words = content.split()
+    lines = []
+    current_line = ""
+    for word in words:
+        if len(current_line + " " + word) <= 35:
+            current_line += " " + word
+        else:
+            lines.append(current_line.strip())
+            current_line = word
+    if current_line:
+        lines.append(current_line.strip())
+
+    y_offset = 840
+    for line in lines[:8]:  # Limit to 8 lines to avoid overflow
+        draw.text((120, y_offset), line, fill="#3c4043", font=font_content)
+        y_offset += 55
+
+    img.save(output_path)
+
+# =====================================
+# VIDEO GENERATION ROUTE
+# =====================================
+@app.route("/generate-video", methods=["POST"])
+def generate_video():
+    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
+    
+    if not CURRENT_FETCHED_REVIEWS:
+        return "No reviews available to generate video", 400
+
+    clips = []
+    temp_images = []
+    app_title = CURRENT_APP_INFO.get("title", "App Reviews")
+
+    # Render up to 10 latest reviews in the video
+    sample_reviews = CURRENT_FETCHED_REVIEWS[:10]
+
+    for idx, r in enumerate(sample_reviews):
+        img_filename = f"temp_frame_{idx}.png"
+        create_review_frame(
+            user_name=r.get("userName", "Google User"),
+            rating_score=r.get("score", 5),
+            content=r.get("content", ""),
+            app_title=app_title,
+            output_path=img_filename
+        )
+        temp_images.append(img_filename)
+
+        # Each review slide will be displayed for 3.5 seconds
+        clip = ImageClip(img_filename).set_duration(3.5)
+        clips.append(clip)
+
+    final_video = concatenate_videoclips(clips, method="compose")
+    output_filename = "PlayStore_Reviews_Video.mp4"
+    final_video.write_videofile(output_filename, fps=24, codec="libx264")
+
+    # Clean up temporary frame images
+    for img_file in temp_images:
+        if os.path.exists(img_file):
+            os.remove(img_file)
+
+    return send_file(output_filename, as_attachment=True, mimetype="video/mp4")
+
+# =====================================
 # MAIN ROUTE
 # =====================================
 @app.route("/", methods=["GET", "POST"])
 def home():
+    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
     data = []  
     raw_input = ""  
     package = ""
@@ -284,6 +386,10 @@ def home():
 
             # Fetch matching reviews
             data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)  
+
+            # Store in global memory for video rendering
+            CURRENT_FETCHED_REVIEWS = data
+            CURRENT_APP_INFO = app_info
 
             # Process Google Sheet & Telegram in Background Thread to prevent Web Timeout
             if len(data) > 0:  
