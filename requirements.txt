@@ -1,7 +1,6 @@
 Flask
-gunicorn
 google-play-scraper
 requests
 Pillow
-opencv-python-headless
-numpy
+moviepy
+gunicorn
