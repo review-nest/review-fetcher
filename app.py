@@ -238,7 +238,6 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
             total_scanned += 1  
             r_date = review_date(review)  
 
-            # Because reviews are sorted by NEWEST, once we see older dates, we stop
             if r_date < search_date:  
                 stop = True  
                 break  
@@ -291,10 +290,10 @@ def create_review_frame(user_name, rating_score, content, app_title, output_path
     draw.line([(120, 640), (960, 640)], fill="#e8eaed", width=2)
 
     # User Info & Stars
-    draw.text((120, 680), f"👤  {user_name}", fill="#202124", font=font_header)
+    draw.text((120, 680), f"User: {user_name}", fill="#202124", font=font_header)
     
     stars = "★" * int(rating_score)
-    draw.text((120, 750), stars, fill="#01875f", font=font_header)
+    draw.text((120, 750), f"Rating: {stars}", fill="#01875f", font=font_header)
 
     # Review Content Wrapped
     words = content.split()
@@ -310,7 +309,7 @@ def create_review_frame(user_name, rating_score, content, app_title, output_path
         lines.append(current_line.strip())
 
     y_offset = 840
-    for line in lines[:8]:  # Limit to 8 lines to avoid overflow
+    for line in lines[:8]:
         draw.text((120, y_offset), line, fill="#3c4043", font=font_content)
         y_offset += 55
 
@@ -326,38 +325,46 @@ def generate_video():
     if not CURRENT_FETCHED_REVIEWS:
         return "No reviews available to generate video", 400
 
-    clips = []
-    temp_images = []
-    app_title = CURRENT_APP_INFO.get("title", "App Reviews")
+    try:
+        clips = []
+        temp_images = []
+        app_title = CURRENT_APP_INFO.get("title", "App Reviews")
 
-    # Render up to 10 latest reviews in the video
-    sample_reviews = CURRENT_FETCHED_REVIEWS[:10]
+        sample_reviews = CURRENT_FETCHED_REVIEWS[:10]
 
-    for idx, r in enumerate(sample_reviews):
-        img_filename = f"temp_frame_{idx}.png"
-        create_review_frame(
-            user_name=r.get("userName", "Google User"),
-            rating_score=r.get("score", 5),
-            content=r.get("content", ""),
-            app_title=app_title,
-            output_path=img_filename
+        for idx, r in enumerate(sample_reviews):
+            img_filename = f"temp_frame_{idx}.png"
+            create_review_frame(
+                user_name=r.get("userName", "Google User"),
+                rating_score=r.get("score", 5),
+                content=r.get("content", ""),
+                app_title=app_title,
+                output_path=img_filename
+            )
+            temp_images.append(img_filename)
+
+            clip = ImageClip(img_filename).set_duration(3.5)
+            clips.append(clip)
+
+        final_video = concatenate_videoclips(clips, method="compose")
+        output_filename = "PlayStore_Reviews_Video.mp4"
+        
+        final_video.write_videofile(
+            output_filename, 
+            fps=24, 
+            codec="libx264", 
+            audio=False
         )
-        temp_images.append(img_filename)
 
-        # Each review slide will be displayed for 3.5 seconds
-        clip = ImageClip(img_filename).set_duration(3.5)
-        clips.append(clip)
+        for img_file in temp_images:
+            if os.path.exists(img_file):
+                os.remove(img_file)
 
-    final_video = concatenate_videoclips(clips, method="compose")
-    output_filename = "PlayStore_Reviews_Video.mp4"
-    final_video.write_videofile(output_filename, fps=24, codec="libx264")
+        return send_file(output_filename, as_attachment=True, mimetype="video/mp4")
 
-    # Clean up temporary frame images
-    for img_file in temp_images:
-        if os.path.exists(img_file):
-            os.remove(img_file)
-
-    return send_file(output_filename, as_attachment=True, mimetype="video/mp4")
+    except Exception as e:
+        print("Video Generation Server Error:", e)
+        return str(e), 500
 
 # =====================================
 # MAIN ROUTE
@@ -376,7 +383,6 @@ def home():
         rating = request.form.get("rating", "").strip()  
         keyword = request.form.get("keyword", "").strip()  
 
-        # Parse Play Store URL or Raw Package ID
         package = extract_package_id(raw_input)
 
         if package:  
@@ -389,14 +395,11 @@ def home():
             print("Rating :", rating)  
             print("=" * 50)  
 
-            # Fetch matching reviews
             data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)  
 
-            # Store in global memory for video rendering
             CURRENT_FETCHED_REVIEWS = data
             CURRENT_APP_INFO = app_info
 
-            # Process Google Sheet & Telegram in Background Thread to prevent Web Timeout
             if len(data) > 0:  
                 thread = threading.Thread(
                     target=process_and_upload_async, 
@@ -429,4 +432,4 @@ if __name__ == "__main__":
     print("Google Play Review Fetcher Started")  
     print("=" * 50)  
     app.run(host="0.0.0.0", port=5000, debug=True)
-        
+            
