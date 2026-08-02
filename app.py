@@ -134,43 +134,53 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# SAFE FRAME GENERATOR
+# REEL FORMAT FRAME GENERATOR (1080x1920)
 # =====================================
 def create_review_frame(user_name, rating_score, content, app_title, output_path):
-    img = Image.new('RGB', (720, 1280), color='#f1f5f9')
+    # Standard Instagram/Shorts Reel Size
+    W, H = 1080, 1920
+    img = Image.new('RGB', (W, H), color='#0f172a') # Stylish dark background
     draw = ImageDraw.Draw(img)
 
-    # Card background
-    draw.rectangle([40, 200, 680, 1080], fill="#ffffff", outline="#cbd5e1", width=2)
+    # Decorative Reel Header
+    draw.text((80, 180), "PLAY STORE REVIEWS", fill="#38bdf8")
+    draw.text((80, 240), str(app_title)[:30], fill="#ffffff")
 
-    # Title & User
-    draw.text((70, 240), f"App: {str(app_title)[:25]}", fill="#0f172a")
-    draw.text((70, 290), f"User: {str(user_name)[:25]}", fill="#334155")
+    # Review Card Container (Centered Reel Card)
+    card_x1, card_y1 = 70, 450
+    card_x2, card_y2 = 1010, 1450
+    draw.rounded_rectangle([card_x1, card_y1, card_x2, card_y2], radius=30, fill="#1e293b", outline="#334155", width=3)
+
+    # User Info
+    draw.text((120, 520), f"👤  {str(user_name)[:22]}", fill="#f8fafc")
     
+    # Rating Stars
     stars = "★ " * int(rating_score if rating_score else 5)
-    draw.text((70, 340), f"Rating: {stars}", fill="#01875f")
-    draw.line([(70, 390), (650, 390)], fill="#e2e8f0", width=2)
+    draw.text((120, 590), stars, fill="#4ade80")
+    
+    draw.line([(120, 660), (960, 660)], fill="#334155", width=2)
 
-    # Content Line Wrapper
+    # Wrapped Text Content
     words = str(content).split()
     lines, current_line = [], ""
     for word in words:
-        if len(current_line + " " + word) <= 30:
+        if len(current_line + " " + word) <= 28:
             current_line += " " + word
         else:
             lines.append(current_line.strip())
             current_line = word
     if current_line: lines.append(current_line.strip())
 
-    y = 420
-    for line in lines[:15]:
-        draw.text((70, y), line, fill="#1e293b")
-        y += 40
+    y = 700
+    for line in lines[:12]:
+        draw.text((120, y), line, fill="#cbd5e1")
+        y += 55
 
+    # Save PNG Image
     img.save(output_path)
 
 # =====================================
-# DIRECT PAYLOAD VIDEO GENERATOR (OPENCV)
+# REEL VIDEO GENERATOR (COMPATIBLE CODEC)
 # =====================================
 @app.route("/generate-video", methods=["POST"])
 def generate_video():
@@ -182,13 +192,21 @@ def generate_video():
         if not reviews_list:
             return "No reviews received to build video", 400
 
-        out_path = "/tmp/reviews_video.mp4" if os.path.exists("/tmp") else "reviews_video.mp4"
+        out_path = "/tmp/reel_video.mp4" if os.path.exists("/tmp") else "reel_video.mp4"
         
-        # Initialize OpenCV Video Writer
-        width, height = 720, 1280
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Universal standard MP4 format
-        fps = 1 # 1 frame per second
+        # 1080x1920 Reel Dimensions
+        width, height = 1080, 1920
+        
+        # Universal Codecs for Mobile Video Playback
+        fourcc = cv2.VideoWriter_fourcc(*'avc1')
+        fps = 30 # 30 FPS for smooth video creation
         video = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+
+        # Fallback codec if avc1 is not available on environment
+        if not video.isOpened():
+            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+            out_path = out_path.replace('.mp4', '.avi')
+            video = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
 
         temp_files = []
 
@@ -204,15 +222,13 @@ def generate_video():
             )
             temp_files.append(frame_path)
             
-            # Read image back using OpenCV
             frame = cv2.imread(frame_path)
             
-            # Write the same frame 3 times (Shows each review for 3 seconds)
-            video.write(frame)
-            video.write(frame)
-            video.write(frame)
+            # Write 90 frames for each review (3 seconds display per review at 30 FPS)
+            for _ in range(90):
+                video.write(frame)
 
-        video.release() # Finalize and save video
+        video.release()
 
         # Cleanup Image Frames
         for f in temp_files:
@@ -220,10 +236,13 @@ def generate_video():
                 try: os.remove(f)
                 except: pass
 
-        return send_file(out_path, as_attachment=True, download_name="PlayStore_Reviews_Video.mp4", mimetype="video/mp4")
+        mimetype = "video/avi" if out_path.endswith('.avi') else "video/mp4"
+        download_name = "PlayStore_Reel.avi" if out_path.endswith('.avi') else "PlayStore_Reel.mp4"
+
+        return send_file(out_path, as_attachment=True, download_name=download_name, mimetype=mimetype)
 
     except Exception as e:
-        print("VIDEO RENDER CRASH LOG:", str(e))
+        print("VIDEO RENDER ERROR:", str(e))
         return str(e), 500
 
 # =====================================
