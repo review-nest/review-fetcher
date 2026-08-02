@@ -544,15 +544,35 @@
             const loader = document.getElementById('video-loading-overlay');
             if (loader) loader.style.display = 'flex';
 
+            // Extract review elements from page
+            const reviewElements = document.querySelectorAll('.ps-review-item');
+            const extractedReviews = [];
+
+            reviewElements.forEach(el => {
+                const userName = el.querySelector('.ps-username')?.innerText || "Google User";
+                const starsText = el.querySelector('.ps-stars')?.innerText || "★★★★★";
+                const score = (starsText.match(/★/g) || []).length;
+                const content = el.querySelector('.ps-comment')?.innerText || "";
+
+                extractedReviews.push({ userName, score, content });
+            });
+
+            const appTitle = document.querySelector('.modal-app-title')?.innerText || "Play Store Reviews";
+
+            if (extractedReviews.length === 0) {
+                alert("No reviews found on screen!");
+                if (loader) loader.style.display = 'none';
+                return;
+            }
+
             fetch('/generate-video', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reviews: extractedReviews, app_title: appTitle })
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error("Failed to generate video");
+                    throw new Error("Server Error during rendering video");
                 }
                 return response.blob();
             })
@@ -569,7 +589,7 @@
                 if (loader) loader.style.display = 'none';
             })
             .catch(error => {
-                alert("Video generation failed! Make sure reviews are loaded on screen.");
+                alert("Video generation failed! " + error.message);
                 if (loader) loader.style.display = 'none';
             });
         }
