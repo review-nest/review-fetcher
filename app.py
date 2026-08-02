@@ -8,7 +8,12 @@ import time
 import os
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
-from moviepy.editor import ImageClip, concatenate_videoclips
+
+# Render / MoviePy compatibility import fix
+try:
+    from moviepy import ImageClip, concatenate_videoclips
+except ImportError:
+    from moviepy.editor import ImageClip, concatenate_videoclips
 
 app = Flask(__name__)
 
@@ -424,4 +429,4 @@ if __name__ == "__main__":
     print("Google Play Review Fetcher Started")  
     print("=" * 50)  
     app.run(host="0.0.0.0", port=5000, debug=True)
-    
+        
