@@ -1,90 +1,569 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reviews Nest</title>
-<style>
-body{font-family:Inter,Arial,sans-serif;background:#f8fafc;margin:0;padding:30px}
-.container{max-width:1000px;margin:auto;background:#fff;padding:30px;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-h1{margin-top:0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.full{grid-column:1/-1}
-input,select,textarea,button{width:100%;padding:12px;border-radius:10px;border:1px solid #cbd5e1;box-sizing:border-box}
-button{background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}
-.loading{display:none;margin-top:15px}
-.review{border-bottom:1px solid #e5e7eb;padding:16px 0}
-@media(max-width:768px){.grid{grid-template-columns:1fr}}
-</style>
-<script>
-window.addEventListener("DOMContentLoaded",()=>{
- const form=document.querySelector("form");
- const btn=document.getElementById("fetchBtn");
- const load=document.getElementById("loading");
- if(form){
-   form.addEventListener("submit",()=>{
-      btn.disabled=true;
-      btn.innerText="Fetching Reviews...";
-      load.style.display="block";
-   });
- }
-});
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Play Store Review Fetcher API</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Export Libraries for 4K Image & PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f1f3f4;
+            font-family: 'Roboto', sans-serif;
+            padding: 30px 15px;
+            color: #202124;
+            line-height: 1.5;
+        }
+
+        .main-wrapper {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        /* CARD CONTAINER */
+        .card {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+            margin-bottom: 24px;
+        }
+
+        /* COMPACT API FORM */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #5f6368;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13.5px;
+            color: #202124;
+            background-color: #ffffff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        }
+
+        textarea {
+            height: 70px;
+            resize: vertical;
+        }
+
+        /* COMPACT FETCH BUTTON */
+        .fetch-btn {
+            grid-column: span 2;
+            padding: 10px 18px;
+            background: #1a73e8;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .fetch-btn:hover {
+            background: #1557b0;
+        }
+
+        /* LOADING OVERLAY */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid #e8eaed;
+            border-top: 4px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #3c4043;
+        }
+
+        /* DOWNLOAD TOOLBAR */
+        .action-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: 1px solid #dadce0;
+            margin-bottom: 20px;
+        }
+
+        .toolbar-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #3c4043;
+        }
+
+        .download-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .download-btn {
+            padding: 7px 14px;
+            font-size: 12.5px;
+            font-weight: 500;
+            border-radius: 6px;
+            border: 1px solid #dadce0;
+            background: #ffffff;
+            color: #3c4043;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .download-btn:hover {
+            background-color: #f8f9fa;
+            border-color: #bdc1c6;
+        }
+
+        .download-btn.primary {
+            background: #01875f;
+            color: #ffffff;
+            border: none;
+        }
+
+        .download-btn.primary:hover {
+            background: #016c4c;
+        }
+
+        /* PLAY STORE MODAL EXACT LOOK (IMAGE MATCH) */
+        .play-modal-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .app-app-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .modal-app-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #202124;
+        }
+
+        .modal-app-sub {
+            font-size: 12px;
+            color: #5f6368;
+            margin-top: 1px;
+        }
+
+        .modal-close-icon {
+            font-size: 22px;
+            color: #5f6368;
+            cursor: pointer;
+        }
+
+        .reviews-list {
+            padding: 12px 24px 24px 24px;
+        }
+
+        /* PLAY STORE SINGLE REVIEW ROW */
+        .ps-review-item {
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .ps-review-item:last-child {
+            border-bottom: none;
+        }
+
+        .ps-user-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ps-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #3b78e7;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+        }
+
+        .avatar-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .ps-username {
+            font-size: 13px;
+            font-weight: 500;
+            color: #202124;
+        }
+
+        .ps-three-dots {
+            color: #5f6368;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .ps-rating-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .ps-stars {
+            color: #01875f; /* Play Store Green */
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .ps-date {
+            font-size: 11px;
+            color: #5f6368;
+        }
+
+        .ps-comment {
+            font-size: 12.5px;
+            color: #3c4043;
+            margin: 10px 0 12px 0;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .ps-helpful-text {
+            font-size: 11.5px;
+            color: #5f6368;
+            margin-bottom: 8px;
+        }
+
+        .ps-helpful-text-count {
+            font-size: 11px;
+            color: #5f6368;
+            margin-bottom: 8px;
+        }
+
+        .ps-action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ps-pill-btn {
+            background: #ffffff;
+            border: 1px solid #dadce0;
+            border-radius: 16px;
+            padding: 4px 18px;
+            font-size: 11.5px;
+            font-weight: 500;
+            color: #3c4043;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width, .fetch-btn { grid-column: span 1; }
+            .action-toolbar { flex-direction: column; gap: 10px; align-items: flex-start; }
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
-<h1>Reviews Nest</h1>
 
-<form method="POST">
-<div class="grid">
-<div>
-<label>Package ID / Play Store Link</label>
-<input type="text" name="package" value="{{ package if package else '' }}" required>
-</div>
+    <!-- LOADING SPINNER -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Fetching & Syncing Reviews...</div>
+    </div>
 
-<div>
-<label>Date</label>
-<input type="date" name="date" value="{{ request.form.get('date','') }}" required>
-</div>
+    <div class="main-wrapper">
 
-<div class="full">
-<label>Rating</label>
-<select name="rating">
-<option value="">All Ratings</option>
-<option value="5">5 Star</option>
-<option value="4">4 Star</option>
-<option value="3">3 Star</option>
-<option value="2">2 Star</option>
-<option value="1">1 Star</option>
-</select>
-</div>
+        <!-- COMPACT API FORM -->
+        <div class="card">
+            <form method="POST" id="review-form">
+                <div class="form-grid">
 
-<div class="full">
-<label>Keywords</label>
-<textarea name="keyword">{{ request.form.get('keyword','') }}</textarea>
-</div>
+                    <div class="form-group">
+                        <label>Package ID / Play Store Link</label>
+                        <input 
+                            type="text"
+                            name="package" 
+                            placeholder="e.g. com.whatsapp or Play Store URL" 
+                            value="{{ package if package else '' }}"
+                            required>
+                    </div>
 
-<div class="full">
-<button id="fetchBtn" type="submit">Fetch Reviews</button>
-<div id="loading" class="loading">Fetching reviews... Please wait.</div>
-</div>
-</div>
-</form>
+                    <div class="form-group">
+                        <label>Target Review Date</label>
+                        <input 
+                            type="date" 
+                            name="date" 
+                            value="{{ request.form.get('date', '') }}"
+                            required>
+                    </div>
 
-{% if reviews %}
-<hr>
-<h2>{{ app_info.title if app_info else package }}</h2>
-<p>Total Reviews: {{ reviews|length }}</p>
+                    <div class="form-group full-width">
+                        <label>Star Rating Filter</label>
+                        <select name="rating">
+                            <option value="" {% if not request.form.get('rating') %}selected{% endif %}>All Ratings</option>
+                            <option value="5" {% if request.form.get('rating') == '5' %}selected{% endif %}>5 Stars (⭐⭐⭐⭐⭐)</option>
+                            <option value="4" {% if request.form.get('rating') == '4' %}selected{% endif %}>4 Stars (⭐⭐⭐⭐)</option>
+                            <option value="3" {% if request.form.get('rating') == '3' %}selected{% endif %}>3 Stars (⭐⭐⭐)</option>
+                            <option value="2" {% if request.form.get('rating') == '2' %}selected{% endif %}>2 Stars (⭐⭐)</option>
+                            <option value="1" {% if request.form.get('rating') == '1' %}selected{% endif %}>1 Star (⭐)</option>
+                        </select>
+                    </div>
 
-{% for r in reviews %}
-<div class="review">
-<strong>{{ r.userName }}</strong><br>
-⭐ {{ r.score }}<br>
-{{ r.at }}<br><br>
-{{ r.content }}
-</div>
-{% endfor %}
-{% endif %}
-</div>
+                    <div class="form-group full-width">
+                        <label>Search Comment / Keywords (1 per line)</label>
+                        <textarea 
+                            name="keyword" 
+                            placeholder="Enter keywords line-by-line...">{{ request.form.get('keyword', '') }}</textarea>
+                    </div>
+
+                    <button type="submit" class="fetch-btn">
+                        Fetch Reviews
+                    </button>
+
+                </div>
+            </form>
+        </div>
+
+        {% if reviews is not none and reviews|length > 0 %}
+
+            <!-- EXPORT TOOLBAR -->
+            <div class="action-toolbar">
+                <div class="toolbar-title">Matched Results: <strong>{{ reviews|length }}</strong></div>
+                <div class="download-group">
+                    <button class="download-btn" onclick="exportToPDF()">
+                        📄 Download PDF
+                    </button>
+                    <button class="download-btn primary" onclick="exportTo4KImage()">
+                        🖼️ Download 4K Image
+                    </button>
+                </div>
+            </div>
+
+            <!-- PLAY STORE MODAL EXACT LOOK -->
+            <div class="play-modal-card" id="export-target">
+                
+                <!-- MODAL HEADER -->
+                <div class="modal-header">
+                    <div class="modal-header-left">
+                        {% if app_info and app_info.icon %}
+                            <img src="{{ app_info.icon }}" class="app-app-icon" alt="App Icon" crossorigin="anonymous">
+                        {% endif %}
+                        <div>
+                            <div class="modal-app-title">{{ app_info.title if app_info and app_info.title else package }}</div>
+                            <div class="modal-app-sub">Ratings and reviews</div>
+                        </div>
+                    </div>
+                    <div class="modal-close-icon">✕</div>
+                </div>
+
+                <!-- REVIEWS LIST -->
+                <div class="reviews-list">
+                    {% for r in reviews %}
+                        <div class="ps-review-item">
+                            <div class="ps-user-header">
+                                <div class="ps-user-info">
+                                    {% if r.userImage %}
+                                        <img src="{{ r.userImage }}" class="avatar-img" alt="User" crossorigin="anonymous" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="avatar-circle" style="display:none; background-color: #0F9D58;">
+                                            {{ r.userName[0] if r.userName else 'A' }}
+                                        </div>
+                                    {% else %}
+                                        <div class="avatar-circle" style="background-color: #3b78e7;">
+                                            {{ r.userName[0] if r.userName else 'A' }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="ps-username">{{ r.userName if r.userName else 'A Google User' }}</div>
+                                </div>
+                                <div class="ps-three-dots">⋮</div>
+                            </div>
+
+                            <div class="ps-rating-row">
+                                <div class="ps-stars">
+                                    {% for i in range(r.score if r.score else 0) %}★{% endfor %}
+                                </div>
+                                <div class="ps-date">
+                                    {{ r.at.strftime("%B %d, %Y") if r.at and r.at.strftime is defined else r.at }}
+                                </div>
+                            </div>
+
+                            <div class="ps-comment">
+                                {{ r.content }}
+                            </div>
+
+                            <div class="ps-helpful-text">Did you find this helpful?</div>
+
+                            <div class="ps-action-btns">
+                                <button type="button" class="ps-pill-btn">Yes</button>
+                                <button type="button" class="ps-pill-btn">No</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <script>
+        // SHOW LOADING SPINNER ON FORM SUBMIT
+        document.getElementById('review-form').addEventListener('submit', function() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        });
+
+        // HIGH-DEF 4K IMAGE EXPORT FUNCTION
+        function exportTo4KImage() {
+            const element = document.getElementById('export-target');
+            if(!element) return;
+
+            // Show temporary loading status
+            const overlay = document.getElementById('loading-overlay');
+            overlay.style.display = 'flex';
+            document.querySelector('.loading-text').innerText = 'Generating 4K Ultra-HD Image...';
+
+            html2canvas(element, {
+                scale: 3, // 3x scaling for 4K crisp resolution
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: "#ffffff",
+                logging: false
+            }).then(canvas => {
+                const image = canvas.toDataURL("image/png", 1.0);
+                const link = document.createElement('a');
+                link.download = `PlayStore_Reviews_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = image;
+                link.click();
+                overlay.style.display = 'none';
+            }).catch(err => {
+                console.error(err);
+                alert('Image export failed. Downloading standard format...');
+                overlay.style.display = 'none';
+            });
+        }
+
+        // PDF EXPORT FUNCTION
+        function exportToPDF() {
+            const element = document.getElementById('export-target');
+            if(!element) return;
+
+            const opt = {
+                margin:       10,
+                filename:     `Reviews_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
 </body>
 </html>
