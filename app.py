@@ -9,12 +9,15 @@ import os
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
-# MoviePy import compatibility fix for Render deployment
+# =====================================
+# MOVIEPY SAFE IMPORT (FIXED FOR RENDER)
+# =====================================
 try:
     from moviepy.editor import ImageClip, concatenate_videoclips
-except (ModuleNotFoundError, ImportError):
-    from moviepy.video.io.ImageClip import ImageClip
-    from moviepy.video.compositing.concatenate import concatenate_videoclips
+except Exception:
+    import moviepy.editor as mp
+    ImageClip = mp.ImageClip
+    concatenate_videoclips = mp.concatenate_videoclips
 
 app = Flask(__name__)
 
@@ -239,7 +242,7 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
             total_scanned += 1  
             r_date = review_date(review)  
 
-            # Because reviews are sorted by NEWEST, once we see older dates, we stop
+            # Stop scanning if we hit dates older than requested date
             if r_date < search_date:  
                 stop = True  
                 break  
@@ -267,7 +270,7 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# VIDEO RENDER HELPER FUNCTION WITH SCROLL EFFECT
+# VIDEO RENDER HELPER FUNCTION
 # =====================================
 def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title):
     """Draws an aesthetic card at a given Y offset on 1080 wide canvas."""
@@ -278,7 +281,7 @@ def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title
         font_header = ImageFont.truetype("arial.ttf", 45)
         font_sub = ImageFont.truetype("arial.ttf", 32)
         font_content = ImageFont.truetype("arial.ttf", 36)
-    except:
+    except Exception:
         font_header = font_sub = font_content = ImageFont.load_default()
 
     # Header - App Name
@@ -313,7 +316,7 @@ def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title
         text_y += 50
 
 # =====================================
-# VIDEO GENERATION ROUTE (SCROLLING REEL FORMAT)
+# VIDEO GENERATION ROUTE
 # =====================================
 @app.route("/generate-video", methods=["POST"])
 def generate_video():
@@ -325,15 +328,13 @@ def generate_video():
     app_title = CURRENT_APP_INFO.get("title", "App Reviews")
     sample_reviews = CURRENT_FETCHED_REVIEWS[:8]  # Takes up to 8 reviews
     
-    card_height = 950  # Card height + margin
+    card_height = 950
     total_reviews = len(sample_reviews)
     
-    # Canvas Height holds all cards stacked vertically
     canvas_height = total_reviews * card_height + 1920
-    canvas_img = Image.new('RGB', (1080, canvas_height), color='#0f172a')  # Modern Dark Wallpaper
+    canvas_img = Image.new('RGB', (1080, canvas_height), color='#0f172a')
     draw = ImageDraw.Draw(canvas_img)
 
-    # Render all review cards on one long image strip
     for idx, r in enumerate(sample_reviews):
         card_y = 530 + (idx * card_height)
         draw_single_card(
@@ -348,17 +349,14 @@ def generate_video():
     strip_filename = "temp_long_strip.png"
     canvas_img.save(strip_filename)
 
-    # Calculate Reel Scrolling Animation
     scroll_distance = total_reviews * card_height
-    total_duration = total_reviews * 3.5  # 3.5 seconds per review scroll
+    total_duration = total_reviews * 3.5
     
     full_clip = ImageClip(strip_filename)
 
-    # Dynamic scroll function (moves canvas vertically)
     def scroll_frame(get_frame, t):
         y_pos = int((t / total_duration) * scroll_distance)
         frame = get_frame(t)
-        # Crop 1080x1920 view area dynamically
         return frame[y_pos : y_pos + 1920, 0 : 1080]
 
     scrolling_clip = full_clip.fl(scroll_frame).set_duration(total_duration)
@@ -371,7 +369,6 @@ def generate_video():
         preset="ultrafast"
     )
 
-    # Cleanup temporary image file
     if os.path.exists(strip_filename):
         os.remove(strip_filename)
 
@@ -394,7 +391,6 @@ def home():
         rating = request.form.get("rating", "").strip()  
         keyword = request.form.get("keyword", "").strip()  
 
-        # Parse Play Store URL or Raw Package ID
         package = extract_package_id(raw_input)
 
         if package:  
@@ -407,14 +403,11 @@ def home():
             print("Rating :", rating)  
             print("=" * 50)  
 
-            # Fetch matching reviews
             data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)  
 
-            # Store in global memory for video rendering
             CURRENT_FETCHED_REVIEWS = data
             CURRENT_APP_INFO = app_info
 
-            # Process Google Sheet & Telegram in Background Thread to prevent Web Timeout
             if len(data) > 0:  
                 thread = threading.Thread(
                     target=process_and_upload_async, 
@@ -447,4 +440,4 @@ if __name__ == "__main__":
     print("Google Play Review Fetcher Started")  
     print("=" * 50)  
     app.run(host="0.0.0.0", port=5000, debug=True)
-    
+                          
