@@ -1,4 +1,5 @@
 Flask
+gunicorn
 google-play-scraper
 requests
 Pillow
