@@ -177,6 +177,12 @@
             border-radius: 12px;
             border: 1px solid #e2e8f0;
             margin-bottom: 16px;
+            gap: 10px;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 8px;
         }
 
         .download-btn {
@@ -192,6 +198,23 @@
         }
 
         .download-btn:hover { background: #016c4c; }
+
+        .reel-btn {
+            padding: 7px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 20px;
+            border: none;
+            background: #8b5cf6;
+            color: #ffffff;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .reel-btn:hover { background: #7c3aed; }
 
         /* ========================================================
            DESKTOP MODE PLAY STORE MODAL (CLEAN & ACCURATE)
@@ -359,6 +382,7 @@
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full-width, .fetch-btn-pill { grid-column: span 1; }
+            .action-toolbar { flex-direction: column; align-items: flex-start; gap: 10px; }
         }
     </style>
 </head>
@@ -368,7 +392,7 @@
     <!-- SPINNER OVERLAY -->
     <div id="loading-overlay">
         <div class="aesthetic-spinner"></div>
-        <div class="loading-text">Fetching Reviews...</div>
+        <div class="loading-text" id="loading-msg">Fetching Reviews...</div>
     </div>
 
     <div class="main-wrapper">
@@ -439,7 +463,15 @@
             <!-- EXPORT TOOLBAR -->
             <div class="action-toolbar">
                 <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
-                <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
+                
+                <div class="toolbar-buttons">
+                    <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
+                    
+                    <!-- REEL GENERATION FORM BUTTON -->
+                    <form action="/generate-video" method="POST" id="video-form" style="display: inline;">
+                        <button type="submit" class="reel-btn">🎬 Generate Reel</button>
+                    </form>
+                </div>
             </div>
 
             <!-- DESKTOP STYLE MODAL DISPLAY -->
@@ -506,8 +538,22 @@
 
     <script>
         document.getElementById('review-form').addEventListener('submit', function() {
+            document.getElementById('loading-msg').innerText = 'Fetching Reviews...';
             document.getElementById('loading-overlay').style.display = 'flex';
         });
+
+        const videoForm = document.getElementById('video-form');
+        if (videoForm) {
+            videoForm.addEventListener('submit', function() {
+                document.getElementById('loading-msg').innerText = 'Rendering Reel Video... Please wait';
+                document.getElementById('loading-overlay').style.display = 'flex';
+                
+                // Hide overlay after download triggers
+                setTimeout(function() {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                }, 8000);
+            });
+        }
 
         function exportToPDF() {
             const element = document.getElementById('export-target');
@@ -525,4 +571,5 @@
         }
     </script>
 </body>
-</html>
+                                </html>
+                                
