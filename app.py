@@ -8,7 +8,13 @@ import time
 import os
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
-from moviepy.editor import ImageClip, concatenate_videoclips
+
+# MoviePy import compatibility fix for Render deployment
+try:
+    from moviepy.editor import ImageClip, concatenate_videoclips
+except (ModuleNotFoundError, ImportError):
+    from moviepy.video.io.ImageClip import ImageClip
+    from moviepy.video.compositing.concatenate import concatenate_videoclips
 
 app = Flask(__name__)
 
@@ -317,14 +323,14 @@ def generate_video():
         return "No reviews available to generate video", 400
 
     app_title = CURRENT_APP_INFO.get("title", "App Reviews")
-    sample_reviews = CURRENT_FETCHED_REVIEWS[:8] # Takes up to 8 reviews
+    sample_reviews = CURRENT_FETCHED_REVIEWS[:8]  # Takes up to 8 reviews
     
-    card_height = 950 # Card height + margin
+    card_height = 950  # Card height + margin
     total_reviews = len(sample_reviews)
     
     # Canvas Height holds all cards stacked vertically
     canvas_height = total_reviews * card_height + 1920
-    canvas_img = Image.new('RGB', (1080, canvas_height), color='#0f172a') # Modern Dark Wallpaper
+    canvas_img = Image.new('RGB', (1080, canvas_height), color='#0f172a')  # Modern Dark Wallpaper
     draw = ImageDraw.Draw(canvas_img)
 
     # Render all review cards on one long image strip
@@ -344,7 +350,7 @@ def generate_video():
 
     # Calculate Reel Scrolling Animation
     scroll_distance = total_reviews * card_height
-    total_duration = total_reviews * 3.5 # 3.5 seconds per review scroll
+    total_duration = total_reviews * 3.5  # 3.5 seconds per review scroll
     
     full_clip = ImageClip(strip_filename)
 
