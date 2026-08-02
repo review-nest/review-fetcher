@@ -3,3 +3,4 @@ google-play-scraper
 requests
 Pillow
 moviepy
+gunicorn
