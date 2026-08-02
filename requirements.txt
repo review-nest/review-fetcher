@@ -1,4 +1,4 @@
-Flask
+flask
 google-play-scraper
 requests
 Pillow
