@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Play Store Review Fetcher API</title>
+    <title>Play Store Reviews</title>
     
-    <!-- Google Fonts -->
+    <!-- Google Sans / Roboto Font Match -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 
     <!-- PDF Export Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,82 +21,95 @@
         }
 
         body {
-            background-color: #f1f3f4;
+            background-color: #f8f9fa;
             font-family: 'Roboto', sans-serif;
-            padding: 15px 10px;
+            padding: 24px 12px;
             color: #202124;
-            line-height: 1.4;
+            display: flex;
+            justify-content: center;
         }
 
         .main-wrapper {
-            max-width: 520px;
-            margin: auto;
+            width: 100%;
+            max-width: 460px;
         }
 
-        /* UPAR WALA FORM SECTION (ORIGINAL & CLEAN) */
-        .card {
+        /* ==========================================
+           FIRST IMAGE MATCH: FORM CARD (CUTE & CLEAN)
+           ========================================== */
+        .form-card {
             background: #ffffff;
-            padding: 16px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(60,64,67,0.15);
-            margin-bottom: 14px;
+            padding: 22px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03);
+            margin-bottom: 20px;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+        .form-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #202124;
+            margin-bottom: 16px;
         }
 
         .form-group {
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 12px;
         }
 
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-
-        label {
-            font-size: 11px;
+        .form-label {
+            display: block;
+            font-size: 12px;
             font-weight: 500;
-            color: #5f6368;
-            margin-bottom: 4px;
-            text-transform: uppercase;
+            color: #3c4043;
+            margin-bottom: 6px;
         }
 
-        input, select, textarea {
+        .form-input, .form-select, .form-textarea {
             width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #dadce0;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border: 1px solid #e8eaed;
+            border-radius: 8px;
+            background-color: #f1f3f4;
             font-family: inherit;
             font-size: 13px;
-            color: #202124;
-            background-color: #ffffff;
+            color: #3c4043;
+            transition: all 0.2s ease;
         }
 
-        input:focus, select:focus, textarea:focus {
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: #9aa0a6;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
+            background-color: #ffffff;
             border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.15);
         }
 
-        textarea {
-            height: 52px;
-            resize: vertical;
+        .form-textarea {
+            height: 64px;
+            resize: none;
         }
 
-        .fetch-btn {
-            grid-column: span 2;
-            padding: 9px 14px;
-            background: #1a73e8;
+        .fetch-btn-pill {
+            display: inline-block;
+            padding: 8px 20px;
+            background-color: #1a73e8;
+            color: #ffffff;
             border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 13px;
+            border-radius: 20px;
+            font-size: 12.5px;
             font-weight: 500;
             cursor: pointer;
+            box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
+            transition: background 0.2s;
             margin-top: 4px;
+        }
+
+        .fetch-btn-pill:hover {
+            background-color: #1557b0;
         }
 
         /* LOADING OVERLAY */
@@ -125,52 +138,46 @@
             100% { transform: rotate(360deg); }
         }
 
-        .loading-text {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #3c4043;
-        }
-
         /* TOOLBAR - PDF ONLY */
         .action-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #ffffff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #dadce0;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
             margin-bottom: 12px;
         }
 
-        .toolbar-title {
-            font-size: 12px;
-            color: #3c4043;
-        }
-
         .download-btn {
-            padding: 5px 12px;
-            font-size: 11.5px;
+            padding: 6px 14px;
+            font-size: 12px;
             font-weight: 500;
-            border-radius: 5px;
+            border-radius: 6px;
             border: none;
             background: #01875f;
             color: #ffffff;
             cursor: pointer;
         }
 
-        /* ========================================================
-           NICHE WALA PART: SCREENSHOT MATCHING PLAY STORE MODAL
-           ======================================================== */
+        /* ==========================================
+           SECOND IMAGE MATCH: EXACT PLAY STORE MODAL
+           ========================================== */
         .play-modal-card {
             background: #ffffff;
             border-radius: 12px;
             border: 1px solid #dadce0;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             overflow: hidden;
         }
 
+        /* FIXED HEADER WITH APP LOGO & NAME */
         .modal-header {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            z-index: 10;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -184,22 +191,22 @@
             gap: 12px;
         }
 
-        .app-app-icon {
-            width: 32px;
-            height: 32px;
+        .app-logo {
+            width: 36px;
+            height: 36px;
             border-radius: 8px;
             object-fit: cover;
         }
 
         .modal-app-title {
-            font-size: 14px;
-            font-weight: 500; /* Regular / Medium Not Heavy */
+            font-size: 15px;
+            font-weight: 700;
             color: #202124;
             line-height: 1.2;
         }
 
         .modal-app-sub {
-            font-size: 11px;
+            font-size: 11.5px;
             color: #5f6368;
             margin-top: 1px;
         }
@@ -210,10 +217,14 @@
             cursor: pointer;
         }
 
+        /* REVIEWS CONTAINER */
         .reviews-list {
-            padding: 0 16px;
+            padding: 4px 16px 12px 16px;
+            max-height: 520px;
+            overflow-y: auto;
         }
 
+        /* SINGLE REVIEW ITEM */
         .ps-review-item {
             padding: 12px 0;
             border-bottom: 1px solid #f1f3f4;
@@ -223,7 +234,6 @@
             border-bottom: none;
         }
 
-        /* USER HEADER */
         .ps-user-header {
             display: flex;
             align-items: center;
@@ -236,23 +246,24 @@
             gap: 10px;
         }
 
-        /* PLAY STORE STYLE CIRCLE INITIALS AVATAR */
+        /* INITIAL CIRCLE AVATAR */
         .avatar-circle {
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             color: #ffffff;
-            font-size: 12px;
-            font-weight: 400;
+            font-size: 13px;
+            font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
             text-transform: uppercase;
         }
 
+        /* BOLD USERNAME AS IN IMAGE */
         .ps-username {
-            font-size: 12px;
-            font-weight: 400; /* Clean & Normal Font */
+            font-size: 12.5px;
+            font-weight: 700;
             color: #202124;
         }
 
@@ -261,7 +272,7 @@
             font-size: 14px;
         }
 
-        /* RATING & DATE INLINE */
+        /* RATING STARS & DATE */
         .ps-rating-row {
             display: flex;
             align-items: center;
@@ -271,8 +282,8 @@
 
         .ps-stars {
             color: #01875f; /* Play Store Green */
-            font-size: 9px;
-            letter-spacing: 1px;
+            font-size: 10px;
+            letter-spacing: 0.5px;
         }
 
         .ps-date {
@@ -280,17 +291,16 @@
             color: #5f6368;
         }
 
-        /* COMMENT TEXT */
+        /* REVIEW TEXT CONTENT */
         .ps-comment {
-            font-size: 11.5px;
-            color: #3c4043;
+            font-size: 12px;
+            color: #202124;
             margin: 6px 0 8px 0;
-            line-height: 1.4;
-            font-weight: 400;
+            line-height: 1.45;
             word-break: break-word;
         }
 
-        /* HELPFUL ROW */
+        /* HELPFUL FEEDBACK ROW */
         .ps-helpful-row {
             display: flex;
             align-items: center;
@@ -312,8 +322,8 @@
             background: #ffffff;
             border: 1px solid #dadce0;
             border-radius: 12px;
-            padding: 2px 12px;
-            font-size: 10.5px;
+            padding: 3px 14px;
+            font-size: 11px;
             color: #3c4043;
             cursor: pointer;
         }
@@ -322,62 +332,61 @@
 
 <body>
 
-    <!-- LOADING SPINNER -->
+    <!-- LOADING OVERLAY -->
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <div class="loading-text">Fetching Reviews...</div>
+        <div style="margin-top: 10px; font-size: 12px; color: #3c4043;">Fetching Reviews...</div>
     </div>
 
     <div class="main-wrapper">
 
-        <!-- COMPACT API FORM (UNCHANGED) -->
-        <div class="card">
+        <!-- FIRST IMAGE STYLE FORM -->
+        <div class="form-card">
+            <div class="form-title">Play Store Reviews</div>
+            
             <form method="POST" id="review-form">
-                <div class="form-grid">
-
-                    <div class="form-group">
-                        <label>Package ID / Link</label>
-                        <input 
-                            type="text"
-                            name="package" 
-                            placeholder="e.g. com.whatsapp" 
-                            value="{{ package if package else '' }}"
-                            required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Target Date</label>
-                        <input 
-                            type="date" 
-                            name="date" 
-                            value="{{ request.form.get('date', '') }}"
-                            required>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label>Star Rating Filter</label>
-                        <select name="rating">
-                            <option value="" {% if not request.form.get('rating') %}selected{% endif %}>All Ratings</option>
-                            <option value="5" {% if request.form.get('rating') == '5' %}selected{% endif %}>5 Stars (⭐⭐⭐⭐⭐)</option>
-                            <option value="4" {% if request.form.get('rating') == '4' %}selected{% endif %}>4 Stars (⭐⭐⭐⭐)</option>
-                            <option value="3" {% if request.form.get('rating') == '3' %}selected{% endif %}>3 Stars (⭐⭐⭐)</option>
-                            <option value="2" {% if request.form.get('rating') == '2' %}selected{% endif %}>2 Stars (⭐⭐)</option>
-                            <option value="1" {% if request.form.get('rating') == '1' %}selected{% endif %}>1 Star (⭐)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label>Keywords Filter (1 per line)</label>
-                        <textarea 
-                            name="keyword" 
-                            placeholder="Type keywords line-by-line...">{{ request.form.get('keyword', '') }}</textarea>
-                    </div>
-
-                    <button type="submit" class="fetch-btn">
-                        Fetch Reviews
-                    </button>
-
+                <div class="form-group">
+                    <label class="form-label">Package ID</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        name="package" 
+                        placeholder="Example: com.whatsapp" 
+                        value="{{ package if package else '' }}" 
+                        required>
                 </div>
+
+                <div class="form-group">
+                    <label class="form-label">Select Review Date</label>
+                    <input 
+                        type="date" 
+                        class="form-input" 
+                        name="date" 
+                        value="{{ request.form.get('date', '') }}" 
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">⭐ Select Rating</label>
+                    <select class="form-select" name="rating">
+                        <option value="" {% if not request.form.get('rating') %}selected{% endif %}>All Stars</option>
+                        <option value="5" {% if request.form.get('rating') == '5' %}selected{% endif %}>5 Stars</option>
+                        <option value="4" {% if request.form.get('rating') == '4' %}selected{% endif %}>4 Stars</option>
+                        <option value="3" {% if request.form.get('rating') == '3' %}selected{% endif %}>3 Stars</option>
+                        <option value="2" {% if request.form.get('rating') == '2' %}selected{% endif %}>2 Stars</option>
+                        <option value="1" {% if request.form.get('rating') == '1' %}selected{% endif %}>1 Star</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">🔍 Search Comment</label>
+                    <textarea 
+                        class="form-textarea" 
+                        name="keyword" 
+                        placeholder="Enter keyword">{{ request.form.get('keyword', '') }}</textarea>
+                </div>
+
+                <button type="submit" class="fetch-btn-pill">Fetch Reviews</button>
             </form>
         </div>
 
@@ -385,20 +394,18 @@
 
             <!-- EXPORT TOOLBAR -->
             <div class="action-toolbar">
-                <div class="toolbar-title">Matched Reviews: <strong>{{ reviews|length }}</strong></div>
-                <button class="download-btn" onclick="exportToPDF()">
-                    📄 Download PDF
-                </button>
+                <span style="font-size: 12px; color: #3c4043;">Found Reviews: <strong>{{ reviews|length }}</strong></span>
+                <button class="download-btn" onclick="exportToPDF()">📄 Download PDF</button>
             </div>
 
-            <!-- EXACT SCREENSHOT MATCHING PLAY STORE DIALOG -->
+            <!-- SECOND IMAGE EXACT DITTO PLAY STORE DIALOG -->
             <div class="play-modal-card" id="export-target">
                 
-                <!-- HEADER -->
+                <!-- FIXED HEADER WITH DITTO APP LOGO & NAME -->
                 <div class="modal-header">
                     <div class="modal-header-left">
                         {% if app_info and app_info.icon %}
-                            <img src="{{ app_info.icon }}" class="app-app-icon" alt="Icon">
+                            <img src="{{ app_info.icon }}" class="app-logo" alt="App Icon">
                         {% endif %}
                         <div>
                             <div class="modal-app-title">{{ app_info.title if app_info and app_info.title else package }}</div>
@@ -415,7 +422,6 @@
                         <div class="ps-review-item">
                             <div class="ps-user-header">
                                 <div class="ps-user-info">
-                                    <!-- Dynamic Avatar Initial Circle -->
                                     <div class="avatar-circle" style="background-color: {{ colors[loop.index0 % 6] }};">
                                         {{ r.userName[0] if r.userName else 'A' }}
                                     </div>
@@ -438,7 +444,7 @@
                             </div>
 
                             <div class="ps-helpful-row">
-                                <div class="ps-helpful-text">Did you find this helpful?</div>
+                                <span class="ps-helpful-text">Did you find this helpful?</span>
                                 <div class="ps-action-btns">
                                     <button type="button" class="ps-pill-btn">Yes</button>
                                     <button type="button" class="ps-pill-btn">No</button>
