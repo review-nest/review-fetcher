@@ -135,7 +135,7 @@
         /* ========================================================
            AESTHETIC LOADING SPINNER
            ======================================================== */
-        #loading-overlay {
+        #loading-overlay, #video-loading-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -154,6 +154,10 @@
             border-top: 3px solid #2563eb;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
+        }
+
+        .video-spinner {
+            border-top: 3px solid #7c3aed;
         }
 
         @keyframes spin {
@@ -179,6 +183,11 @@
             margin-bottom: 16px;
         }
 
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
         .download-btn {
             padding: 7px 16px;
             font-size: 12px;
@@ -192,6 +201,12 @@
         }
 
         .download-btn:hover { background: #016c4c; }
+
+        .video-btn {
+            background: #7c3aed;
+        }
+
+        .video-btn:hover { background: #6d28d9; }
 
         /* ========================================================
            DESKTOP MODE PLAY STORE MODAL (CLEAN & ACCURATE)
@@ -365,10 +380,16 @@
 
 <body>
 
-    <!-- SPINNER OVERLAY -->
+    <!-- SPINNER OVERLAY FOR FETCHING -->
     <div id="loading-overlay">
         <div class="aesthetic-spinner"></div>
         <div class="loading-text">Fetching Reviews...</div>
+    </div>
+
+    <!-- SPINNER OVERLAY FOR VIDEO GENERATION -->
+    <div id="video-loading-overlay">
+        <div class="aesthetic-spinner video-spinner"></div>
+        <div class="loading-text">Rendering HD Video... Please wait.</div>
     </div>
 
     <div class="main-wrapper">
@@ -439,7 +460,10 @@
             <!-- EXPORT TOOLBAR -->
             <div class="action-toolbar">
                 <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
-                <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
+                <div class="btn-group">
+                    <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
+                    <button class="download-btn video-btn" onclick="generateVideo()">🎥 Generate Video</button>
+                </div>
             </div>
 
             <!-- DESKTOP STYLE MODAL DISPLAY -->
@@ -522,6 +546,33 @@
             };
 
             html2pdf().set(opt).from(element).save();
+        }
+
+        function generateVideo() {
+            document.getElementById('video-loading-overlay').style.display = 'flex';
+
+            fetch('/generate-video', {
+                method: 'POST',
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Video generation failed');
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `PlayStore_Reviews_Video_${new Date().toISOString().slice(0,10)}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                
+                document.getElementById('video-loading-overlay').style.display = 'none';
+            })
+            .catch(error => {
+                alert("Video generation failed! Make sure reviews are loaded.");
+                document.getElementById('video-loading-overlay').style.display = 'none';
+            });
         }
     </script>
 </body>
