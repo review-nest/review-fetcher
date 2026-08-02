@@ -135,7 +135,7 @@
         /* ========================================================
            AESTHETIC LOADING SPINNER
            ======================================================== */
-        #loading-overlay, #video-loading-overlay {
+        #loading-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -156,10 +156,6 @@
             animation: spin 0.7s linear infinite;
         }
 
-        .video-spinner {
-            border-top: 3px solid #7c3aed;
-        }
-
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -171,7 +167,7 @@
             color: #475569;
         }
 
-        /* TOOLBAR & CONTROLS */
+        /* TOOLBAR */
         .action-toolbar {
             display: flex;
             justify-content: space-between;
@@ -180,15 +176,7 @@
             padding: 10px 18px;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            margin-bottom: 16px;
         }
 
         .download-btn {
@@ -204,78 +192,6 @@
         }
 
         .download-btn:hover { background: #016c4c; }
-
-        .video-btn { background: #7c3aed; }
-        .video-btn:hover { background: #6d28d9; }
-
-        .copy-btn { background: #475569; }
-        .copy-btn:hover { background: #334155; }
-
-        /* ========================================================
-           NEW: LIVE SEARCH & QUICK CHIP FILTER BAR
-           ======================================================== */
-        .interactive-bar {
-            background: #ffffff;
-            padding: 12px 18px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .filter-chips {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-        }
-
-        .chip-btn {
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 4px 12px;
-            border-radius: 14px;
-            font-size: 11.5px;
-            color: #475569;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .chip-btn.active, .chip-btn:hover {
-            background: #2563eb;
-            color: #ffffff;
-            border-color: #2563eb;
-        }
-
-        .quick-search-input {
-            width: 100%;
-            padding: 8px 12px;
-            font-size: 12.5px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            background: #f8fafc;
-            outline: none;
-        }
-
-        .quick-search-input:focus {
-            border-color: #2563eb;
-            background: #ffffff;
-        }
-
-        /* SUMMARY BAR */
-        .analytics-summary {
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 10px 20px;
-            font-size: 12px;
-            color: #64748b;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
 
         /* ========================================================
            DESKTOP MODE PLAY STORE MODAL (CLEAN & ACCURATE)
@@ -342,7 +258,6 @@
         .ps-review-item {
             padding: 14px 0;
             border-bottom: 1px solid #f1f3f4;
-            transition: opacity 0.2s;
         }
 
         .ps-review-item:last-child {
@@ -445,27 +360,15 @@
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full-width, .fetch-btn-pill { grid-column: span 1; }
         }
-
-        @media print {
-            body { background: white; padding: 0; }
-            .form-card, .action-toolbar, .interactive-bar, #loading-overlay, #video-loading-overlay { display: none !important; }
-            .play-modal-card { border: none; box-shadow: none; }
-        }
     </style>
 </head>
 
 <body>
 
-    <!-- SPINNER OVERLAY FOR FETCHING -->
+    <!-- SPINNER OVERLAY -->
     <div id="loading-overlay">
         <div class="aesthetic-spinner"></div>
         <div class="loading-text">Fetching Reviews...</div>
-    </div>
-
-    <!-- SPINNER OVERLAY FOR VIDEO GENERATION -->
-    <div id="video-loading-overlay">
-        <div class="aesthetic-spinner video-spinner"></div>
-        <div class="loading-text">Rendering HD Video... Please wait.</div>
     </div>
 
     <div class="main-wrapper">
@@ -535,25 +438,8 @@
 
             <!-- EXPORT TOOLBAR -->
             <div class="action-toolbar">
-                <span style="font-size: 12.5px; color: #475569;">Total Reviews Loaded: <strong id="visible-count">{{ reviews|length }}</strong></span>
-                <div class="btn-group">
-                    <button class="download-btn copy-btn" onclick="copyAllText()">📋 Copy All</button>
-                    <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
-                    <button class="download-btn video-btn" onclick="generateVideo()">🎥 Generate Video</button>
-                </div>
-            </div>
-
-            <!-- LIVE SEARCH & CHIP FILTER BAR -->
-            <div class="interactive-bar">
-                <input type="text" id="liveSearch" class="quick-search-input" placeholder="🔍 Instant search in fetched reviews..." onkeyup="filterReviews()">
-                <div class="filter-chips">
-                    <button type="button" class="chip-btn active" onclick="applyStarFilter('all', this)">All Stars</button>
-                    <button type="button" class="chip-btn" onclick="applyStarFilter('5', this)">5 ★</button>
-                    <button type="button" class="chip-btn" onclick="applyStarFilter('4', this)">4 ★</button>
-                    <button type="button" class="chip-btn" onclick="applyStarFilter('3', this)">3 ★</button>
-                    <button type="button" class="chip-btn" onclick="applyStarFilter('2', this)">2 ★</button>
-                    <button type="button" class="chip-btn" onclick="applyStarFilter('1', this)">1 ★</button>
-                </div>
+                <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
+                <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
             </div>
 
             <!-- DESKTOP STYLE MODAL DISPLAY -->
@@ -573,17 +459,11 @@
                     <div class="modal-close-icon">✕</div>
                 </div>
 
-                <!-- ANALYTICAL SUMMARY BAR -->
-                <div class="analytics-summary">
-                    <span>Showing verified Google Play Store reviews</span>
-                    <span>Status: Active Sync</span>
-                </div>
-
                 <!-- UNLOCKED CONTINUOUS REVIEWS LIST -->
-                <div class="reviews-list" id="reviews-container">
+                <div class="reviews-list">
                     {% set colors = ['#689f38', '#2e7d32', '#1565c0', '#ad1457', '#6a1b9a', '#ef6c00'] %}
                     {% for r in reviews %}
-                        <div class="ps-review-item" data-rating="{{ r.score if r.score else 0 }}" data-content="{{ r.content|lower if r.content else '' }}">
+                        <div class="ps-review-item">
                             <div class="ps-user-header">
                                 <div class="ps-user-info">
                                     <div class="avatar-circle" style="background-color: {{ colors[loop.index0 % 6] }};">
@@ -595,4 +475,54 @@
                             </div>
 
                             <div class="ps-rating-row">
-                                <div class="ps-star
+                                <div class="ps-stars">
+                                    {% for i in range(r.score if r.score else 0) %}★{% endfor %}
+                                </div>
+                                <div class="ps-date">
+                                    {{ r.at.strftime("%B %d, %Y") if r.at and r.at.strftime is defined else r.at }}
+                                </div>
+                            </div>
+
+                            <div class="ps-comment">
+                                {{ r.content }}
+                            </div>
+
+                            <div class="ps-helpful-row">
+                                <span class="ps-helpful-text">Did you find this helpful?</span>
+                                <div class="ps-action-btns">
+                                    <button type="button" class="ps-pill-btn">Yes</button>
+                                    <button type="button" class="ps-pill-btn">No</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <script>
+        document.getElementById('review-form').addEventListener('submit', function() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        });
+
+        function exportToPDF() {
+            const element = document.getElementById('export-target');
+            if(!element) return;
+
+            const opt = {
+                margin:       8,
+                filename:     `PlayStore_Reviews_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
