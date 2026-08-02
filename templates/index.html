@@ -3,596 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play Store Review Fetcher</title>
-    
-    <!-- Clean Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-
-    <!-- PDF Export Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    <title>Play Store Review Fetcher & Reel Generator</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            font-family: 'Plus Jakarta Sans', 'Roboto', sans-serif;
-            padding: 30px 15px;
-            color: #1e293b;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .main-wrapper {
-            width: 100%;
-            max-width: 680px;
-        }
-
-        /* FORM CARD */
-        .form-card {
-            background: #ffffff;
-            padding: 28px 26px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 24px;
-        }
-
-        .form-title {
-            text-align: center;
-            font-size: 18px;
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 22px;
-            letter-spacing: -0.2px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-
-        .form-label {
-            font-size: 12.5px;
-            font-weight: 500;
-            color: #475569;
-            margin-bottom: 6px;
-        }
-
-        .form-hint {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 4px;
-            font-weight: 400;
-        }
-
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            background-color: #f8fafc;
-            font-family: inherit;
-            font-size: 13px;
-            color: #1e293b;
-            transition: all 0.2s ease;
-        }
-
-        .form-input::placeholder, .form-textarea::placeholder {
-            color: #94a3b8;
-        }
-
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none;
-            background-color: #ffffff;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-        }
-
-        .form-textarea {
-            height: 64px;
-            resize: none;
-        }
-
-        .fetch-btn-pill {
-            grid-column: span 2;
-            padding: 12px 24px;
-            background: #2563eb;
-            color: #ffffff;
-            border: none;
-            border-radius: 25px;
-            font-size: 13.5px;
-            font-weight: 500;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-            transition: background 0.2s, transform 0.1s;
-            margin-top: 6px;
-        }
-
-        .fetch-btn-pill:hover {
-            background: #1d4ed8;
-        }
-
-        /* SPINNER OVERLAY */
-        #loading-overlay, #video-loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(6px);
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .aesthetic-spinner {
-            width: 42px;
-            height: 42px;
-            border: 3px solid #e2e8f0;
-            border-top: 3px solid #2563eb;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-
-        .video-spinner {
-            border-top: 3px solid #7c3aed;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            margin-top: 12px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #475569;
-        }
-
-        /* TOOLBAR */
-        .action-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #ffffff;
-            padding: 10px 18px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 16px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .download-btn {
-            padding: 7px 16px;
-            font-size: 12px;
-            font-weight: 500;
-            border-radius: 20px;
-            border: none;
-            background: #01875f;
-            color: #ffffff;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .download-btn:hover { background: #016c4c; }
-
-        .video-btn {
-            background: #7c3aed;
-        }
-
-        .video-btn:hover { background: #6d28d9; }
-
-        /* PLAY STORE MODAL CARD */
-        .play-modal-card {
-            background: #ffffff;
-            border-radius: 14px;
-            border: 1px solid #dadce0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-            overflow: hidden;
-        }
-
-        .modal-header {
-            position: sticky;
-            top: 0;
-            background: #ffffff;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .modal-header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .app-logo {
-            width: 38px;
-            height: 38px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .modal-app-title {
-            font-size: 15px;
-            font-weight: 500;
-            color: #202124;
-            line-height: 1.25;
-        }
-
-        .modal-app-sub {
-            font-size: 12px;
-            color: #5f6368;
-            margin-top: 1px;
-            font-weight: 400;
-        }
-
-        .modal-close-icon {
-            font-size: 18px;
-            color: #5f6368;
-            cursor: pointer;
-        }
-
-        .reviews-list {
-            padding: 8px 20px 20px 20px;
-        }
-
-        .ps-review-item {
-            padding: 14px 0;
-            border-bottom: 1px solid #f1f3f4;
-        }
-
-        .ps-review-item:last-child {
-            border-bottom: none;
-        }
-
-        .ps-user-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .ps-user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .avatar-circle {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            color: #ffffff;
-            font-size: 12.5px;
-            font-weight: 400;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-transform: uppercase;
-        }
-
-        .ps-username {
-            font-size: 13px;
-            font-weight: 400;
-            color: #202124;
-        }
-
-        .ps-three-dots {
-            color: #5f6368;
-            font-size: 14px;
-        }
-
-        .ps-rating-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 4px;
-        }
-
-        .ps-stars {
-            color: #01875f;
-            font-size: 10.5px;
-            letter-spacing: 0.5px;
-        }
-
-        .ps-date {
-            font-size: 11px;
-            color: #5f6368;
-            font-weight: 400;
-        }
-
-        .ps-comment {
-            font-size: 12.5px;
-            color: #3c4043;
-            margin: 6px 0 10px 0;
-            line-height: 1.5;
-            font-weight: 400;
-            word-break: break-word;
-        }
-
-        .ps-helpful-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .ps-helpful-text {
-            font-size: 11.5px;
-            color: #5f6368;
-            font-weight: 400;
-        }
-
-        .ps-action-btns {
-            display: flex;
-            gap: 8px;
-        }
-
-        .ps-pill-btn {
-            background: #ffffff;
-            border: 1px solid #dadce0;
-            border-radius: 16px;
-            padding: 3px 15px;
-            font-size: 11px;
-            color: #3c4043;
-            cursor: pointer;
-            font-weight: 400;
-        }
-
-        @media (max-width: 600px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .form-group.full-width, .fetch-btn-pill { grid-column: span 1; }
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        h2 { margin-bottom: 20px; color: #38bdf8; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #94a3b8; }
+        input, select, textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 14px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-fetch { background: #0284c7; color: white; }
+        .btn-fetch:hover { background: #0369a1; }
+        .btn-reel { background: #10b981; color: white; }
+        .btn-reel:hover { background: #059669; }
+        .app-info { margin-top: 20px; padding: 15px; background: #0f172a; border-radius: 8px; display: flex; align-items: center; gap: 15px; }
+        .app-info img { width: 60px; height: 60px; border-radius: 12px; }
+        .reviews-list { margin-top: 25px; }
+        .review-card { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #38bdf8; }
+        .review-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .stars { color: #fbbf24; }
+        #statusMsg { text-align: center; margin-top: 15px; font-weight: bold; color: #f59e0b; display: none; }
     </style>
 </head>
-
 <body>
 
-    <!-- SPINNER OVERLAY FOR FETCHING -->
-    <div id="loading-overlay">
-        <div class="aesthetic-spinner"></div>
-        <div class="loading-text">Fetching Reviews...</div>
-    </div>
-
-    <!-- SPINNER OVERLAY FOR VIDEO GENERATION -->
-    <div id="video-loading-overlay">
-        <div class="aesthetic-spinner video-spinner"></div>
-        <div class="loading-text">Rendering HD Video... Please wait.</div>
-    </div>
-
-    <div class="main-wrapper">
-
-        <!-- FORM CONTAINER -->
-        <div class="form-card">
-            <div class="form-title">Play Store Reviews Fetcher</div>
-            
-            <form method="POST" id="review-form">
-                <div class="form-grid">
-
-                    <!-- PACKAGE ID OR URL INPUT -->
-                    <div class="form-group">
-                        <label class="form-label">Application Package ID / URL</label>
-                        <input 
-                            type="text" 
-                            class="form-input" 
-                            name="package" 
-                            placeholder="e.g., com.whatsapp or https://play.google.com/store/apps/details?id=..." 
-                            value="{{ package if package else '' }}" 
-                            required>
-                        <span class="form-hint">Enter the Package ID or paste the complete Play Store link.</span>
-                    </div>
-
-                    <!-- DATE INPUT -->
-                    <div class="form-group">
-                        <label class="form-label">Review Date</label>
-                        <input 
-                            type="date" 
-                            class="form-input" 
-                            name="date" 
-                            value="{{ request.form.get('date', '') }}" 
-                            required>
-                        <span class="form-hint">Select the target review publication date.</span>
-                    </div>
-
-                    <!-- STAR RATING SELECT -->
-                    <div class="form-group full-width">
-                        <label class="form-label">Filter Rating</label>
-                        <select class="form-select" name="rating">
-                            <option value="" {% if not request.form.get('rating') %}selected{% endif %}>All Ratings</option>
-                            <option value="5" {% if request.form.get('rating') == '5' %}selected{% endif %}>★ ★ ★ ★ ★ (5 Stars)</option>
-                            <option value="4" {% if request.form.get('rating') == '4' %}selected{% endif %}>★ ★ ★ ★ ☆ (4 Stars)</option>
-                            <option value="3" {% if request.form.get('rating') == '3' %}selected{% endif %}>★ ★ ★ ☆ ☆ (3 Stars)</option>
-                            <option value="2" {% if request.form.get('rating') == '2' %}selected{% endif %}>★ ★ ☆ ☆ ☆ (2 Stars)</option>
-                            <option value="1" {% if request.form.get('rating') == '1' %}selected{% endif %}>★ ☆ ☆ ☆ ☆ (1 Star)</option>
-                        </select>
-                    </div>
-
-                    <!-- KEYWORDS SEARCH INPUT -->
-                    <div class="form-group full-width">
-                        <label class="form-label">Search Keywords</label>
-                        <textarea 
-                            class="form-textarea" 
-                            name="keyword" 
-                            placeholder="Enter keywords (e.g. refund, update, crash) - 1 per line">{{ request.form.get('keyword', '') }}</textarea>
-                        <span class="form-hint">Filter reviews containing specific terms. Add one keyword per line.</span>
-                    </div>
-
-                    <button type="submit" class="fetch-btn-pill">Fetch Reviews</button>
-
-                </div>
-            </form>
+<div class="container">
+    <h2>📱 Play Store Review & Reel Generator</h2>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>App Package ID or Play Store URL:</label>
+            <input type="text" name="package" value="{{ package }}" placeholder="com.instagram.android" required>
         </div>
 
-        {% if reviews is not none and reviews|length > 0 %}
+        <div class="form-group">
+            <label>Date (YYYY-MM-DD):</label>
+            <input type="date" name="date" required>
+        </div>
 
-            <!-- EXPORT TOOLBAR -->
-            <div class="action-toolbar">
-                <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
-                <div class="btn-group">
-                    <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
-                    <button class="download-btn video-btn" id="generate-video-btn" onclick="generateVideo()">🎥 Generate Video</button>
-                </div>
-            </div>
+        <div class="form-group">
+            <label>Filter Rating (Optional):</label>
+            <select name="rating">
+                <option value="">All Ratings</option>
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+            </select>
+        </div>
 
-            <!-- DESKTOP STYLE MODAL DISPLAY -->
-            <div class="play-modal-card" id="export-target">
-                
-                <!-- STICKY FIXED HEADER -->
-                <div class="modal-header">
-                    <div class="modal-header-left">
-                        {% if app_info and app_info.icon %}
-                            <img src="{{ app_info.icon }}" class="app-logo" alt="App Icon">
-                        {% endif %}
-                        <div>
-                            <div class="modal-app-title">{{ app_info.title if app_info and app_info.title else package }}</div>
-                            <div class="modal-app-sub">Ratings and reviews</div>
-                        </div>
-                    </div>
-                    <div class="modal-close-icon">✕</div>
-                </div>
+        <div class="form-group">
+            <label>Keywords (Optional - One per line):</label>
+            <textarea name="keyword" rows="2" placeholder="scam&#10;update"></textarea>
+        </div>
 
-                <!-- UNLOCKED CONTINUOUS REVIEWS LIST -->
-                <div class="reviews-list">
-                    {% set colors = ['#689f38', '#2e7d32', '#1565c0', '#ad1457', '#6a1b9a', '#ef6c00'] %}
-                    {% for r in reviews %}
-                        <div class="ps-review-item">
-                            <div class="ps-user-header">
-                                <div class="ps-user-info">
-                                    <div class="avatar-circle" style="background-color: {{ colors[loop.index0 % 6] }};">
-                                        {{ r.userName[0] if r.userName else 'A' }}
-                                    </div>
-                                    <div class="ps-username">{{ r.userName if r.userName else 'A Google User' }}</div>
-                                </div>
-                                <div class="ps-three-dots">⋮</div>
-                            </div>
+        <div class="btn-group">
+            <button type="submit" class="btn-fetch">Fetch Reviews</button>
+            {% if reviews %}
+            <button type="button" class="btn-reel" onclick="generateReelVideo()">🎬 Download Reel Video</button>
+            {% endif %}
+        </div>
+    </form>
 
-                            <div class="ps-rating-row">
-                                <div class="ps-stars">
-                                    {% for i in range(r.score if r.score else 0) %}★{% endfor %}
-                                </div>
-                                <div class="ps-date">
-                                    {{ r.at.strftime("%B %d, %Y") if r.at and r.at.strftime is defined else r.at }}
-                                </div>
-                            </div>
+    <div id="statusMsg">⏳ Rendering Reel Video in 1080x1920... Please wait!</div>
 
-                            <div class="ps-comment">
-                                {{ r.content }}
-                            </div>
-
-                            <div class="ps-helpful-row">
-                                <span class="ps-helpful-text">Did you find this helpful?</span>
-                                <div class="ps-action-btns">
-                                    <button type="button" class="ps-pill-btn">Yes</button>
-                                    <button type="button" class="ps-pill-btn">No</button>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-
-            </div>
-
+    {% if app_info and app_info.title %}
+    <div class="app-info">
+        {% if app_info.icon %}
+        <img src="{{ app_info.icon }}" alt="App Icon">
         {% endif %}
-
+        <div>
+            <h3>{{ app_info.title }}</h3>
+            <p style="color: #94a3b8; font-size: 13px;">Developer: {{ app_info.developer }} | Rating: ⭐ {{ app_info.score }}</p>
+        </div>
     </div>
+    {% endif %}
 
-    <script>
-        document.getElementById('review-form').addEventListener('submit', function() {
-            document.getElementById('loading-overlay').style.display = 'flex';
-        });
+    {% if reviews %}
+    <div class="reviews-list">
+        <h3>Fetched Reviews (Total: {{ reviews|length }})</h3>
+        <br>
+        {% for r in reviews[:10] %}
+        <div class="review-card">
+            <div class="review-header">
+                <strong>👤 {{ r.userName }}</strong>
+                <span class="stars">{"★" * (r.score|int)}</span>
+            </div>
+            <p>{{ r.content }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
 
-        function exportToPDF() {
-            const element = document.getElementById('export-target');
-            if(!element) return;
+<!-- Hidden Canvas for Reel Video Generation (9:16 Aspect Ratio) -->
+<canvas id="reelCanvas" width="1080" height="1920" style="display:none;"></canvas>
 
-            const opt = {
-                margin:       8,
-                filename:     `PlayStore_Reviews_${new Date().toISOString().slice(0,10)}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+<script>
+// Review data from backend Jinja2 template
+const reviewsData = {{ reviews|tojson|safe if reviews else '[]' }};
+const appTitle = {{ (app_info.title if app_info else 'App Reviews')|tojson|safe }};
 
-            html2pdf().set(opt).from(element).save();
+async function generateReelVideo() {
+    if (!reviewsData || reviewsData.length === 0) {
+        alert("No reviews available to create a reel!");
+        return;
+    }
+
+    const statusMsg = document.getElementById("statusMsg");
+    statusMsg.style.display = "block";
+
+    const canvas = document.getElementById("reelCanvas");
+    const ctx = canvas.getContext("2d");
+    
+    // Canvas Capture Stream at 30 FPS
+    const stream = canvas.captureStream(30);
+    
+    // Supported MIME types check for mobile & desktop
+    let mimeType = 'video/webm;codecs=vp9';
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm';
+    }
+
+    const mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+    const chunks = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'PlayStore_Review_Reel.webm';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        statusMsg.style.display = "none";
+    };
+
+    mediaRecorder.start();
+
+    // Process top 10 reviews
+    const topReviews = reviewsData.slice(0, 10);
+    
+    for (let r of topReviews) {
+        // Background
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 1080, 1920);
+
+        // Top Header
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 38px sans-serif';
+        ctx.fillText('PLAY STORE REVIEWS', 80, 180);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 48px sans-serif';
+        ctx.fillText(appTitle.substring(0, 26), 80, 250);
+
+        // Center Glassmorphism Card
+        ctx.fillStyle = '#1e293b';
+        if (ctx.roundRect) {
+            ctx.beginPath();
+            ctx.roundRect(70, 400, 940, 1100, 30);
+            ctx.fill();
+        } else {
+            ctx.fillRect(70, 400, 940, 1100);
         }
 
-        function generateVideo() {
-            const loader = document.getElementById('video-loading-overlay');
-            if (loader) loader.style.display = 'flex';
+        // Username
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 44px sans-serif';
+        const userName = (r.userName || 'Google User').substring(0, 22);
+        ctx.fillText(`👤 ${userName}`, 120, 500);
 
-            // Extract review elements from page
-            const reviewElements = document.querySelectorAll('.ps-review-item');
-            const extractedReviews = [];
+        // Rating Stars
+        ctx.fillStyle = '#4ade80';
+        ctx.font = 'bold 48px sans-serif';
+        const score = parseInt(r.score) || 5;
+        ctx.fillText('★ '.repeat(score), 120, 580);
 
-            reviewElements.forEach(el => {
-                const userName = el.querySelector('.ps-username')?.innerText || "Google User";
-                const starsText = el.querySelector('.ps-stars')?.innerText || "★★★★★";
-                const score = (starsText.match(/★/g) || []).length;
-                const content = el.querySelector('.ps-comment')?.innerText || "";
+        // Divider Line
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(120, 640);
+        ctx.lineTo(960, 640);
+        ctx.stroke();
 
-                extractedReviews.push({ userName, score, content });
-            });
+        // Review Text Line Wrapping
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '36px sans-serif';
+        const words = (r.content || '').split(' ');
+        let line = '', y = 720;
 
-            const appTitle = document.querySelector('.modal-app-title')?.innerText || "Play Store Reviews";
-
-            if (extractedReviews.length === 0) {
-                alert("No reviews found on screen!");
-                if (loader) loader.style.display = 'none';
-                return;
+        for (let word of words) {
+            if ((line + word).length > 28) {
+                ctx.fillText(line.trim(), 120, y);
+                line = word + ' ';
+                y += 55;
+            } else {
+                line += word + ' ';
             }
-
-            fetch('/generate-video', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reviews: extractedReviews, app_title: appTitle })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Server Error during rendering video");
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = `PlayStore_Reviews_Video_${new Date().toISOString().slice(0,10)}.mp4`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-
-                if (loader) loader.style.display = 'none';
-            })
-            .catch(error => {
-                alert("Video generation failed! " + error.message);
-                if (loader) loader.style.display = 'none';
-            });
         }
-    </script>
+        if (line) ctx.fillText(line.trim(), 120, y);
+
+        // Display frame for 3 seconds per review
+        await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+
+    mediaRecorder.stop();
+}
+</script>
+
 </body>
 </html>
