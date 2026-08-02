@@ -1,6 +1,6 @@
-Flask==3.0.0
-google-play-scraper==1.2.4
-requests==2.31.0
-Pillow==10.0.1
-opencv-python-headless==4.8.1.78
-numpy==1.26.0
+Flask
+google-play-scraper
+requests
+Pillow
+opencv-python-headless
+numpy
