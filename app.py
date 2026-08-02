@@ -1,21 +1,17 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request
 from google_play_scraper import reviews, Sort, app as play_app
 import threading
 import requests
 import json
 import re
 import time
-import os
-from PIL import Image, ImageDraw, ImageFont
-import cv2
-import numpy as np
 
 app = Flask(__name__)
 
 # =====================================
 # CONFIG
 # =====================================
-SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzJwok3reHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
+SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
 BOT_TOKEN = "8998711422:AAHFqUS18433G7FgaEU6cp4CbqEW0fwcM3Y"
 CHAT_ID = "6371284862"
 
@@ -134,118 +130,6 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# REEL FORMAT FRAME GENERATOR (1080x1920)
-# =====================================
-def create_review_frame(user_name, rating_score, content, app_title, output_path):
-    # Standard Instagram/Shorts Reel Size
-    W, H = 1080, 1920
-    img = Image.new('RGB', (W, H), color='#0f172a') # Stylish dark background
-    draw = ImageDraw.Draw(img)
-
-    # Decorative Reel Header
-    draw.text((80, 180), "PLAY STORE REVIEWS", fill="#38bdf8")
-    draw.text((80, 240), str(app_title)[:30], fill="#ffffff")
-
-    # Review Card Container (Centered Reel Card)
-    card_x1, card_y1 = 70, 450
-    card_x2, card_y2 = 1010, 1450
-    draw.rounded_rectangle([card_x1, card_y1, card_x2, card_y2], radius=30, fill="#1e293b", outline="#334155", width=3)
-
-    # User Info
-    draw.text((120, 520), f"👤  {str(user_name)[:22]}", fill="#f8fafc")
-    
-    # Rating Stars
-    stars = "★ " * int(rating_score if rating_score else 5)
-    draw.text((120, 590), stars, fill="#4ade80")
-    
-    draw.line([(120, 660), (960, 660)], fill="#334155", width=2)
-
-    # Wrapped Text Content
-    words = str(content).split()
-    lines, current_line = [], ""
-    for word in words:
-        if len(current_line + " " + word) <= 28:
-            current_line += " " + word
-        else:
-            lines.append(current_line.strip())
-            current_line = word
-    if current_line: lines.append(current_line.strip())
-
-    y = 700
-    for line in lines[:12]:
-        draw.text((120, y), line, fill="#cbd5e1")
-        y += 55
-
-    # Save PNG Image
-    img.save(output_path)
-
-# =====================================
-# REEL VIDEO GENERATOR (COMPATIBLE CODEC)
-# =====================================
-@app.route("/generate-video", methods=["POST"])
-def generate_video():
-    try:
-        req_data = request.get_json(force=True, silent=True) or {}
-        reviews_list = req_data.get("reviews", [])
-        app_title = req_data.get("app_title", "Play Store App")
-
-        if not reviews_list:
-            return "No reviews received to build video", 400
-
-        out_path = "/tmp/reel_video.mp4" if os.path.exists("/tmp") else "reel_video.mp4"
-        
-        # 1080x1920 Reel Dimensions
-        width, height = 1080, 1920
-        
-        # Universal Codecs for Mobile Video Playback
-        fourcc = cv2.VideoWriter_fourcc(*'avc1')
-        fps = 30 # 30 FPS for smooth video creation
-        video = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
-
-        # Fallback codec if avc1 is not available on environment
-        if not video.isOpened():
-            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-            out_path = out_path.replace('.mp4', '.avi')
-            video = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
-
-        temp_files = []
-
-        # Process max 10 reviews
-        for idx, r in enumerate(reviews_list[:10]):
-            frame_path = f"/tmp/frame_{idx}.png" if os.path.exists("/tmp") else f"frame_{idx}.png"
-            create_review_frame(
-                user_name=r.get("userName", "Google User"),
-                rating_score=r.get("score", 5),
-                content=r.get("content", ""),
-                app_title=app_title,
-                output_path=frame_path
-            )
-            temp_files.append(frame_path)
-            
-            frame = cv2.imread(frame_path)
-            
-            # Write 90 frames for each review (3 seconds display per review at 30 FPS)
-            for _ in range(90):
-                video.write(frame)
-
-        video.release()
-
-        # Cleanup Image Frames
-        for f in temp_files:
-            if os.path.exists(f): 
-                try: os.remove(f)
-                except: pass
-
-        mimetype = "video/avi" if out_path.endswith('.avi') else "video/mp4"
-        download_name = "PlayStore_Reel.avi" if out_path.endswith('.avi') else "PlayStore_Reel.mp4"
-
-        return send_file(out_path, as_attachment=True, download_name=download_name, mimetype=mimetype)
-
-    except Exception as e:
-        print("VIDEO RENDER ERROR:", str(e))
-        return str(e), 500
-
-# =====================================
 # MAIN ROUTE
 # =====================================
 @app.route("/", methods=["GET", "POST"])
@@ -268,4 +152,4 @@ def home():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-        
+    
