@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Play Store Review Fetcher</title>
     
-    <!-- Google Sans / Roboto Font -->
+    <!-- Clean Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
@@ -21,10 +21,10 @@
         }
 
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             font-family: 'Plus Jakarta Sans', 'Roboto', sans-serif;
             padding: 30px 15px;
-            color: #202124;
+            color: #1e293b;
             display: flex;
             justify-content: center;
             min-height: 100vh;
@@ -32,19 +32,18 @@
 
         .main-wrapper {
             width: 100%;
-            max-width: 680px; /* Desktop Style Width for Crisp View */
+            max-width: 680px;
         }
 
         /* ========================================================
-           AESTHETIC & CUTE PROFESSIONAL FORM DESIGN
+           CLEAN & PROFESSIONAL AESTHETIC FORM CARD
            ======================================================== */
         .form-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 28px 24px;
-            border-radius: 24px;
-            box-shadow: 0 12px 35px rgba(31, 38, 135, 0.07), 0 2px 10px rgba(0, 0, 0, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: #ffffff;
+            padding: 28px 26px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+            border: 1px solid #e2e8f0;
             margin-bottom: 24px;
         }
 
@@ -52,18 +51,15 @@
             text-align: center;
             font-size: 18px;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            color: #0f172a;
+            margin-bottom: 22px;
+            letter-spacing: -0.2px;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 16px;
         }
 
         .form-group {
@@ -76,31 +72,29 @@
         }
 
         .form-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
+            font-size: 12.5px;
             font-weight: 500;
-            color: #5f6368;
+            color: #475569;
             margin-bottom: 6px;
         }
 
-        .form-label svg {
-            width: 15px;
-            height: 15px;
-            fill: #4285f4;
+        .form-hint {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+            font-weight: 400;
         }
 
         .form-input, .form-select, .form-textarea {
             width: 100%;
             padding: 10px 14px;
-            border: 1.5px solid #e1e5ee;
-            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
             background-color: #f8fafc;
             font-family: inherit;
             font-size: 13px;
-            color: #334155;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #1e293b;
+            transition: all 0.2s ease;
         }
 
         .form-input::placeholder, .form-textarea::placeholder {
@@ -110,48 +104,43 @@
         .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
             background-color: #ffffff;
-            border-color: #4285f4;
-            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.12);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .form-textarea {
-            height: 60px;
+            height: 64px;
             resize: none;
         }
 
         .fetch-btn-pill {
             grid-column: span 2;
             padding: 12px 24px;
-            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            background: #2563eb;
             color: #ffffff;
             border: none;
-            border-radius: 30px;
+            border-radius: 25px;
             font-size: 13.5px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            transition: background 0.2s, transform 0.1s;
             margin-top: 6px;
         }
 
         .fetch-btn-pill:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+            background: #1d4ed8;
         }
 
         /* ========================================================
-           AESTHETIC HIGH-TECH LOADING OVERLAY
+           AESTHETIC LOADING SPINNER
            ======================================================== */
         #loading-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(6px);
             z-index: 9999;
             flex-direction: column;
             align-items: center;
@@ -159,24 +148,23 @@
         }
 
         .aesthetic-spinner {
-            width: 48px;
-            height: 48px;
+            width: 42px;
+            height: 42px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #2563eb;
             border-radius: 50%;
-            background: conic-gradient(#0000 10%, #4285f4);
-            -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);
-            animation: spin 0.75s infinite linear;
+            animation: spin 0.7s linear infinite;
         }
 
         @keyframes spin {
-            to { transform: rotate(1turn); }
+            to { transform: rotate(360deg); }
         }
 
         .loading-text {
-            margin-top: 14px;
+            margin-top: 12px;
             font-size: 13px;
             font-weight: 500;
             color: #475569;
-            letter-spacing: 0.3px;
         }
 
         /* TOOLBAR */
@@ -186,7 +174,7 @@
             align-items: center;
             background: #ffffff;
             padding: 10px 18px;
-            border-radius: 14px;
+            border-radius: 12px;
             border: 1px solid #e2e8f0;
             margin-bottom: 16px;
         }
@@ -200,26 +188,23 @@
             background: #01875f;
             color: #ffffff;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
             transition: background 0.2s;
         }
 
         .download-btn:hover { background: #016c4c; }
 
         /* ========================================================
-           DESKTOP MODE PLAY STORE MODAL DESIGN (UNLOCKED SCROLL)
+           DESKTOP MODE PLAY STORE MODAL (CLEAN & ACCURATE)
            ======================================================== */
         .play-modal-card {
             background: #ffffff;
-            border-radius: 16px;
+            border-radius: 14px;
             border: 1px solid #dadce0;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
             overflow: hidden;
         }
 
-        /* LOCKED TOP HEADER */
+        /* FIXED STICKY HEADER */
         .modal-header {
             position: sticky;
             top: 0;
@@ -239,13 +224,12 @@
         }
 
         .app-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
             object-fit: cover;
         }
 
-        /* LIGHT WEIGHT APPTITLE (NOT HEAVY BOLD) */
         .modal-app-title {
             font-size: 15px;
             font-weight: 500;
@@ -256,22 +240,21 @@
         .modal-app-sub {
             font-size: 12px;
             color: #5f6368;
-            margin-top: 2px;
+            margin-top: 1px;
             font-weight: 400;
         }
 
         .modal-close-icon {
-            font-size: 20px;
+            font-size: 18px;
             color: #5f6368;
             cursor: pointer;
         }
 
-        /* CONTINUOUS UNLOCKED REVIEWS CONTAINER */
+        /* CONTINUOUS UNLOCKED REVIEWS LIST */
         .reviews-list {
             padding: 8px 20px 20px 20px;
         }
 
-        /* DESKTOP STYLE SINGLE REVIEW ROW */
         .ps-review-item {
             padding: 14px 0;
             border-bottom: 1px solid #f1f3f4;
@@ -290,16 +273,15 @@
         .ps-user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        /* CIRCLE AVATAR */
         .avatar-circle {
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             color: #ffffff;
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 400;
             display: flex;
             align-items: center;
@@ -307,7 +289,6 @@
             text-transform: uppercase;
         }
 
-        /* NORMAL WEIGHT USERNAME (DESKTOP MODE MATCH) */
         .ps-username {
             font-size: 13px;
             font-weight: 400;
@@ -316,11 +297,9 @@
 
         .ps-three-dots {
             color: #5f6368;
-            font-size: 15px;
-            cursor: pointer;
+            font-size: 14px;
         }
 
-        /* RATING & DATE */
         .ps-rating-row {
             display: flex;
             align-items: center;
@@ -329,9 +308,9 @@
         }
 
         .ps-stars {
-            color: #01875f; /* Play Store Green */
+            color: #01875f;
             font-size: 10.5px;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .ps-date {
@@ -340,7 +319,6 @@
             font-weight: 400;
         }
 
-        /* REVIEW TEXT */
         .ps-comment {
             font-size: 12.5px;
             color: #3c4043;
@@ -350,7 +328,6 @@
             word-break: break-word;
         }
 
-        /* HELPFUL ROW */
         .ps-helpful-row {
             display: flex;
             align-items: center;
@@ -372,7 +349,7 @@
             background: #ffffff;
             border: 1px solid #dadce0;
             border-radius: 16px;
-            padding: 3px 16px;
+            padding: 3px 15px;
             font-size: 11px;
             color: #3c4043;
             cursor: pointer;
@@ -388,81 +365,70 @@
 
 <body>
 
-    <!-- AESTHETIC SPINNER -->
+    <!-- SPINNER OVERLAY -->
     <div id="loading-overlay">
         <div class="aesthetic-spinner"></div>
-        <div class="loading-text">Fetching Play Store Reviews...</div>
+        <div class="loading-text">Fetching Reviews...</div>
     </div>
 
     <div class="main-wrapper">
 
-        <!-- CUTE & AESTHETIC FORM WITH ICONS -->
+        <!-- FORM CONTAINER -->
         <div class="form-card">
-            <div class="form-title">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#4285f4"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
-                Play Store Reviews Fetcher
-            </div>
+            <div class="form-title">Play Store Reviews Fetcher</div>
             
             <form method="POST" id="review-form">
                 <div class="form-grid">
 
+                    <!-- PACKAGE ID OR URL INPUT -->
                     <div class="form-group">
-                        <label class="form-label">
-                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>
-                            Package ID / App Link
-                        </label>
+                        <label class="form-label">Application Package ID / URL</label>
                         <input 
                             type="text" 
                             class="form-input" 
                             name="package" 
-                            placeholder="e.g. com.whatsapp" 
+                            placeholder="e.g., com.whatsapp or https://play.google.com/store/apps/details?id=..." 
                             value="{{ package if package else '' }}" 
                             required>
+                        <span class="form-hint">Enter the Package ID or paste the complete Play Store link.</span>
                     </div>
 
+                    <!-- DATE INPUT -->
                     <div class="form-group">
-                        <label class="form-label">
-                            <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg>
-                            Target Date
-                        </label>
+                        <label class="form-label">Review Date</label>
                         <input 
                             type="date" 
                             class="form-input" 
                             name="date" 
                             value="{{ request.form.get('date', '') }}" 
                             required>
+                        <span class="form-hint">Select the target review publication date.</span>
                     </div>
 
+                    <!-- STAR RATING SELECT WITH ICONS -->
                     <div class="form-group full-width">
-                        <label class="form-label">
-                            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                            Rating Filter
-                        </label>
+                        <label class="form-label">Filter Rating</label>
                         <select class="form-select" name="rating">
-                            <option value="" {% if not request.form.get('rating') %}selected{% endif %}>All Stars Rating</option>
-                            <option value="5" {% if request.form.get('rating') == '5' %}selected{% endif %}>5 Stars</option>
-                            <option value="4" {% if request.form.get('rating') == '4' %}selected{% endif %}>4 Stars</option>
-                            <option value="3" {% if request.form.get('rating') == '3' %}selected{% endif %}>3 Stars</option>
-                            <option value="2" {% if request.form.get('rating') == '2' %}selected{% endif %}>2 Stars</option>
-                            <option value="1" {% if request.form.get('rating') == '1' %}selected{% endif %}>1 Star</option>
+                            <option value="" {% if not request.form.get('rating') %}selected{% endif %}>All Ratings</option>
+                            <option value="5" {% if request.form.get('rating') == '5' %}selected{% endif %}>★ ★ ★ ★ ★ (5 Stars)</option>
+                            <option value="4" {% if request.form.get('rating') == '4' %}selected{% endif %}>★ ★ ★ ★ ☆ (4 Stars)</option>
+                            <option value="3" {% if request.form.get('rating') == '3' %}selected{% endif %}>★ ★ ★ ☆ ☆ (3 Stars)</option>
+                            <option value="2" {% if request.form.get('rating') == '2' %}selected{% endif %}>★ ★ ☆ ☆ ☆ (2 Stars)</option>
+                            <option value="1" {% if request.form.get('rating') == '1' %}selected{% endif %}>★ ☆ ☆ ☆ ☆ (1 Star)</option>
                         </select>
                     </div>
 
+                    <!-- KEYWORDS SEARCH INPUT -->
                     <div class="form-group full-width">
-                        <label class="form-label">
-                            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                            Keyword Filter (1 per line)
-                        </label>
+                        <label class="form-label">Search Keywords</label>
                         <textarea 
                             class="form-textarea" 
                             name="keyword" 
-                            placeholder="Type keywords line by line...">{{ request.form.get('keyword', '') }}</textarea>
+                            placeholder="Enter keywords (e.g. refund, update, crash) - 1 per line">{{ request.form.get('keyword', '') }}</textarea>
+                        <span class="form-hint">Filter reviews containing specific terms. Add one keyword per line.</span>
                     </div>
 
-                    <button type="submit" class="fetch-btn-pill">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-                        Fetch Reviews
-                    </button>
+                    <button type="submit" class="fetch-btn-pill">Fetch Reviews</button>
 
                 </div>
             </form>
@@ -472,16 +438,14 @@
 
             <!-- EXPORT TOOLBAR -->
             <div class="action-toolbar">
-                <span style="font-size: 12.5px; color: #475569;">Matched Reviews: <strong>{{ reviews|length }}</strong></span>
-                <button class="download-btn" onclick="exportToPDF()">
-                    📄 Save as PDF
-                </button>
+                <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
+                <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
             </div>
 
             <!-- DESKTOP STYLE MODAL DISPLAY -->
             <div class="play-modal-card" id="export-target">
                 
-                <!-- LOCKED HEADER -->
+                <!-- STICKY FIXED HEADER -->
                 <div class="modal-header">
                     <div class="modal-header-left">
                         {% if app_info and app_info.icon %}
