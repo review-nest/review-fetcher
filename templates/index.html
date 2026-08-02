@@ -10,8 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <!-- Export Libraries for 4K Image & PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- PDF Export Library Only -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -24,30 +23,29 @@
         body {
             background-color: #f1f3f4;
             font-family: 'Roboto', sans-serif;
-            padding: 30px 15px;
+            padding: 12px 8px;
             color: #202124;
-            line-height: 1.5;
+            line-height: 1.3;
         }
 
         .main-wrapper {
-            max-width: 800px;
+            max-width: 520px; /* Mobile First Compact Width */
             margin: auto;
         }
 
-        /* CARD CONTAINER */
+        /* COMPACT FORM CARD */
         .card {
             background: #ffffff;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
-            margin-bottom: 24px;
+            padding: 14px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(60,64,67,0.2);
+            margin-bottom: 12px;
         }
 
-        /* COMPACT API FORM */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 8px;
         }
 
         .form-group {
@@ -60,58 +58,45 @@
         }
 
         label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             color: #5f6368;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 9px 12px;
+            padding: 6px 10px;
             border: 1px solid #dadce0;
-            border-radius: 6px;
+            border-radius: 5px;
             font-family: inherit;
-            font-size: 13.5px;
+            font-size: 12px;
             color: #202124;
             background-color: #ffffff;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #1a73e8;
-            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
         }
 
         textarea {
-            height: 70px;
+            height: 48px;
             resize: vertical;
         }
 
-        /* COMPACT FETCH BUTTON */
         .fetch-btn {
             grid-column: span 2;
-            padding: 10px 18px;
+            padding: 8px 12px;
             background: #1a73e8;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             color: white;
-            font-size: 13.5px;
+            font-size: 12.5px;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 4px;
-        }
-
-        .fetch-btn:hover {
-            background: #1557b0;
+            margin-top: 2px;
         }
 
         /* LOADING OVERLAY */
@@ -121,17 +106,16 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.85);
             z-index: 9999;
-            backdrop-filter: blur(4px);
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
 
         .spinner {
-            width: 44px;
-            height: 44px;
-            border: 4px solid #e8eaed;
-            border-top: 4px solid #1a73e8;
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e8eaed;
+            border-top: 3px solid #1a73e8;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -142,71 +126,45 @@
         }
 
         .loading-text {
-            margin-top: 14px;
-            font-size: 14px;
-            font-weight: 500;
+            margin-top: 10px;
+            font-size: 12px;
             color: #3c4043;
         }
 
-        /* DOWNLOAD TOOLBAR */
+        /* TOOLBAR - ONLY PDF */
         .action-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #ffffff;
-            padding: 12px 18px;
-            border-radius: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
             border: 1px solid #dadce0;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .toolbar-title {
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 12px;
             color: #3c4043;
-        }
-
-        .download-group {
-            display: flex;
-            gap: 10px;
         }
 
         .download-btn {
-            padding: 7px 14px;
-            font-size: 12.5px;
+            padding: 5px 12px;
+            font-size: 11.5px;
             font-weight: 500;
-            border-radius: 6px;
-            border: 1px solid #dadce0;
-            background: #ffffff;
-            color: #3c4043;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .download-btn:hover {
-            background-color: #f8f9fa;
-            border-color: #bdc1c6;
-        }
-
-        .download-btn.primary {
+            border-radius: 5px;
+            border: none;
             background: #01875f;
             color: #ffffff;
-            border: none;
+            cursor: pointer;
         }
 
-        .download-btn.primary:hover {
-            background: #016c4c;
-        }
-
-        /* PLAY STORE MODAL EXACT LOOK (IMAGE MATCH) */
+        /* EXACT MOBILE PLAY STORE MODAL DESIGN */
         .play-modal-card {
             background: #ffffff;
-            border-radius: 16px;
+            border-radius: 12px;
             border: 1px solid #e0e0e0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             overflow: hidden;
         }
 
@@ -214,48 +172,48 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 24px;
+            padding: 10px 14px;
             border-bottom: 1px solid #f0f0f0;
         }
 
         .modal-header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 10px;
         }
 
         .app-app-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
             object-fit: cover;
         }
 
         .modal-app-title {
-            font-size: 16px;
+            font-size: 13.5px;
             font-weight: 700;
             color: #202124;
+            line-height: 1.2;
         }
 
         .modal-app-sub {
-            font-size: 12px;
+            font-size: 11px;
             color: #5f6368;
-            margin-top: 1px;
         }
 
         .modal-close-icon {
-            font-size: 22px;
+            font-size: 18px;
             color: #5f6368;
             cursor: pointer;
         }
 
         .reviews-list {
-            padding: 12px 24px 24px 24px;
+            padding: 0 14px 10px 14px;
         }
 
-        /* PLAY STORE SINGLE REVIEW ROW */
+        /* ULTRA COMPACT SINGLE REVIEW ITEM (FITS 10+ REVIEWS ON MOBILE SCREEN) */
         .ps-review-item {
-            padding: 16px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #f1f3f4;
         }
 
@@ -272,16 +230,16 @@
         .ps-user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
         .avatar-circle {
-            width: 32px;
-            height: 32px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             background-color: #3b78e7;
             color: #ffffff;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -290,82 +248,74 @@
         }
 
         .avatar-img {
-            width: 32px;
-            height: 32px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             object-fit: cover;
         }
 
         .ps-username {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             color: #202124;
         }
 
         .ps-three-dots {
             color: #5f6368;
-            font-size: 16px;
-            cursor: pointer;
+            font-size: 13px;
         }
 
         .ps-rating-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-top: 8px;
+            gap: 6px;
+            margin-top: 2px;
         }
 
         .ps-stars {
-            color: #01875f; /* Play Store Green */
-            font-size: 12px;
-            letter-spacing: 1px;
+            color: #01875f; /* Official Play Store Green */
+            font-size: 10px;
+            letter-spacing: 0.5px;
         }
 
         .ps-date {
-            font-size: 11px;
+            font-size: 10px;
             color: #5f6368;
         }
 
         .ps-comment {
-            font-size: 12.5px;
+            font-size: 11.5px;
             color: #3c4043;
-            margin: 10px 0 12px 0;
-            line-height: 1.5;
+            margin: 4px 0 5px 0;
+            line-height: 1.35;
             word-break: break-word;
         }
 
-        .ps-helpful-text {
-            font-size: 11.5px;
-            color: #5f6368;
-            margin-bottom: 8px;
+        .ps-helpful-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
         }
 
-        .ps-helpful-text-count {
-            font-size: 11px;
+        .ps-helpful-text {
+            font-size: 10.5px;
             color: #5f6368;
-            margin-bottom: 8px;
         }
 
         .ps-action-btns {
             display: flex;
-            gap: 10px;
+            gap: 6px;
         }
 
         .ps-pill-btn {
             background: #ffffff;
             border: 1px solid #dadce0;
-            border-radius: 16px;
-            padding: 4px 18px;
-            font-size: 11.5px;
-            font-weight: 500;
+            border-radius: 12px;
+            padding: 2px 12px;
+            font-size: 10.5px;
             color: #3c4043;
             cursor: pointer;
-        }
-
-        @media (max-width: 600px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .form-group.full-width, .fetch-btn { grid-column: span 1; }
-            .action-toolbar { flex-direction: column; gap: 10px; align-items: flex-start; }
         }
     </style>
 </head>
@@ -375,7 +325,7 @@
     <!-- LOADING SPINNER -->
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <div class="loading-text">Fetching & Syncing Reviews...</div>
+        <div class="loading-text">Fetching Reviews...</div>
     </div>
 
     <div class="main-wrapper">
@@ -386,17 +336,17 @@
                 <div class="form-grid">
 
                     <div class="form-group">
-                        <label>Package ID / Play Store Link</label>
+                        <label>Package ID / Link</label>
                         <input 
                             type="text"
                             name="package" 
-                            placeholder="e.g. com.whatsapp or Play Store URL" 
+                            placeholder="e.g. com.whatsapp" 
                             value="{{ package if package else '' }}"
                             required>
                     </div>
 
                     <div class="form-group">
-                        <label>Target Review Date</label>
+                        <label>Target Date</label>
                         <input 
                             type="date" 
                             name="date" 
@@ -417,10 +367,10 @@
                     </div>
 
                     <div class="form-group full-width">
-                        <label>Search Comment / Keywords (1 per line)</label>
+                        <label>Keywords Filter (1 per line)</label>
                         <textarea 
                             name="keyword" 
-                            placeholder="Enter keywords line-by-line...">{{ request.form.get('keyword', '') }}</textarea>
+                            placeholder="Type keywords line-by-line...">{{ request.form.get('keyword', '') }}</textarea>
                     </div>
 
                     <button type="submit" class="fetch-btn">
@@ -433,27 +383,22 @@
 
         {% if reviews is not none and reviews|length > 0 %}
 
-            <!-- EXPORT TOOLBAR -->
+            <!-- EXPORT TOOLBAR (PDF ONLY) -->
             <div class="action-toolbar">
-                <div class="toolbar-title">Matched Results: <strong>{{ reviews|length }}</strong></div>
-                <div class="download-group">
-                    <button class="download-btn" onclick="exportToPDF()">
-                        📄 Download PDF
-                    </button>
-                    <button class="download-btn primary" onclick="exportTo4KImage()">
-                        🖼️ Download 4K Image
-                    </button>
-                </div>
+                <div class="toolbar-title">Matched Reviews: <strong>{{ reviews|length }}</strong></div>
+                <button class="download-btn" onclick="exportToPDF()">
+                    📄 Download PDF
+                </button>
             </div>
 
-            <!-- PLAY STORE MODAL EXACT LOOK -->
+            <!-- EXACT MOBILE PLAY STORE MODAL LOOK -->
             <div class="play-modal-card" id="export-target">
                 
                 <!-- MODAL HEADER -->
                 <div class="modal-header">
                     <div class="modal-header-left">
                         {% if app_info and app_info.icon %}
-                            <img src="{{ app_info.icon }}" class="app-app-icon" alt="App Icon" crossorigin="anonymous">
+                            <img src="{{ app_info.icon }}" class="app-app-icon" alt="Icon">
                         {% endif %}
                         <div>
                             <div class="modal-app-title">{{ app_info.title if app_info and app_info.title else package }}</div>
@@ -470,7 +415,7 @@
                             <div class="ps-user-header">
                                 <div class="ps-user-info">
                                     {% if r.userImage %}
-                                        <img src="{{ r.userImage }}" class="avatar-img" alt="User" crossorigin="anonymous" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <img src="{{ r.userImage }}" class="avatar-img" alt="User" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="avatar-circle" style="display:none; background-color: #0F9D58;">
                                             {{ r.userName[0] if r.userName else 'A' }}
                                         </div>
@@ -497,11 +442,12 @@
                                 {{ r.content }}
                             </div>
 
-                            <div class="ps-helpful-text">Did you find this helpful?</div>
-
-                            <div class="ps-action-btns">
-                                <button type="button" class="ps-pill-btn">Yes</button>
-                                <button type="button" class="ps-pill-btn">No</button>
+                            <div class="ps-helpful-row">
+                                <div class="ps-helpful-text">Did you find this helpful?</div>
+                                <div class="ps-action-btns">
+                                    <button type="button" class="ps-pill-btn">Yes</button>
+                                    <button type="button" class="ps-pill-btn">No</button>
+                                </div>
                             </div>
                         </div>
                     {% endfor %}
@@ -514,40 +460,10 @@
     </div>
 
     <script>
-        // SHOW LOADING SPINNER ON FORM SUBMIT
+        // SHOW LOADING OVERLAY ON FORM SUBMIT
         document.getElementById('review-form').addEventListener('submit', function() {
             document.getElementById('loading-overlay').style.display = 'flex';
         });
-
-        // HIGH-DEF 4K IMAGE EXPORT FUNCTION
-        function exportTo4KImage() {
-            const element = document.getElementById('export-target');
-            if(!element) return;
-
-            // Show temporary loading status
-            const overlay = document.getElementById('loading-overlay');
-            overlay.style.display = 'flex';
-            document.querySelector('.loading-text').innerText = 'Generating 4K Ultra-HD Image...';
-
-            html2canvas(element, {
-                scale: 3, // 3x scaling for 4K crisp resolution
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: "#ffffff",
-                logging: false
-            }).then(canvas => {
-                const image = canvas.toDataURL("image/png", 1.0);
-                const link = document.createElement('a');
-                link.download = `PlayStore_Reviews_${new Date().toISOString().slice(0,10)}.png`;
-                link.href = image;
-                link.click();
-                overlay.style.display = 'none';
-            }).catch(err => {
-                console.error(err);
-                alert('Image export failed. Downloading standard format...');
-                overlay.style.display = 'none';
-            });
-        }
 
         // PDF EXPORT FUNCTION
         function exportToPDF() {
@@ -555,8 +471,8 @@
             if(!element) return;
 
             const opt = {
-                margin:       10,
-                filename:     `Reviews_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+                margin:       8,
+                filename:     `PlayStore_Reviews_${new Date().toISOString().slice(0,10)}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
