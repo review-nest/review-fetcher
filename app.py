@@ -1,10 +1,14 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 from google_play_scraper import reviews, Sort, app as play_app
 import threading
 import requests
 import json
 import re
 import time
+import os
+from PIL import Image, ImageDraw
+import cv2
+import numpy as np
 
 app = Flask(__name__)
 
@@ -128,6 +132,87 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
         if stop or token is None or total_scanned >= MAX_FETCH: break  
         time.sleep(0.1)  
     return data  
+
+# =====================================
+# IN-MEMORY REEL FRAME GENERATOR (1080x1920)
+# =====================================
+def create_review_frame_array(user_name, rating_score, content, app_title):
+    W, H = 1080, 1920
+    img = Image.new('RGB', (W, H), color='#0f172a')
+    draw = ImageDraw.Draw(img)
+
+    # Header
+    draw.text((80, 180), "PLAY STORE REVIEWS", fill="#38bdf8")
+    draw.text((80, 240), str(app_title)[:28], fill="#ffffff")
+
+    # Card
+    draw.rectangle([70, 400, 1010, 1500], fill="#1e293b", outline="#334155", width=3)
+
+    # User & Rating
+    draw.text((120, 480), f"User: {str(user_name)[:22]}", fill="#f8fafc")
+    stars = "★ " * int(rating_score if rating_score else 5)
+    draw.text((120, 550), stars, fill="#4ade80")
+    draw.line([(120, 620), (960, 620)], fill="#334155", width=2)
+
+    # Wrap Content
+    words = str(content).split()
+    lines, current_line = [], ""
+    for word in words:
+        if len(current_line + " " + word) <= 28:
+            current_line += " " + word
+        else:
+            lines.append(current_line.strip())
+            current_line = word
+    if current_line: lines.append(current_line.strip())
+
+    y = 680
+    for line in lines[:12]:
+        draw.text((120, y), line, fill="#cbd5e1")
+        y += 50
+
+    # Convert Image directly to Numpy BGR Array (Zero Disk I/O)
+    img_np = np.array(img)
+    return cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+
+# =====================================
+# ORIGINAL ROUTE FOR VIDEO GENERATION
+# =====================================
+@app.route("/generate-video", methods=["POST"])
+def generate_video():
+    try:
+        req_data = request.get_json(force=True, silent=True) or {}
+        reviews_list = req_data.get("reviews", [])
+        app_title = req_data.get("app_title", "Play Store App")
+
+        if not reviews_list:
+            return "No reviews received to build video", 400
+
+        out_path = "/tmp/reviews_reel.mp4" if os.path.exists("/tmp") else "reviews_reel.mp4"
+        
+        width, height = 1080, 1920
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        fps = 30
+        video = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+
+        # Process max 10 reviews
+        for r in reviews_list[:10]:
+            frame_bgr = create_review_frame_array(
+                user_name=r.get("userName", "Google User"),
+                rating_score=r.get("score", 5),
+                content=r.get("content", ""),
+                app_title=app_title
+            )
+            # Hold each review frame for 3 seconds (90 frames at 30fps)
+            for _ in range(90):
+                video.write(frame_bgr)
+
+        video.release()
+
+        return send_file(out_path, as_attachment=True, download_name="PlayStore_Reel.mp4", mimetype="video/mp4")
+
+    except Exception as e:
+        print("VIDEO RENDER ERROR:", str(e))
+        return str(e), 500
 
 # =====================================
 # MAIN ROUTE
