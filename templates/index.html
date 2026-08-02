@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play Store Reviews</title>
+    <title>Play Store Review Fetcher</title>
     
-    <!-- Google Sans / Roboto Font Match -->
+    <!-- Google Sans / Roboto Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 
     <!-- PDF Export Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,212 +21,259 @@
         }
 
         body {
-            background-color: #f8f9fa;
-            font-family: 'Roboto', sans-serif;
-            padding: 24px 12px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            font-family: 'Plus Jakarta Sans', 'Roboto', sans-serif;
+            padding: 30px 15px;
             color: #202124;
             display: flex;
             justify-content: center;
+            min-height: 100vh;
         }
 
         .main-wrapper {
             width: 100%;
-            max-width: 460px;
+            max-width: 680px; /* Desktop Style Width for Crisp View */
         }
 
-        /* ==========================================
-           FIRST IMAGE MATCH: FORM CARD (CUTE & CLEAN)
-           ========================================== */
+        /* ========================================================
+           AESTHETIC & CUTE PROFESSIONAL FORM DESIGN
+           ======================================================== */
         .form-card {
-            background: #ffffff;
-            padding: 22px 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03);
-            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 28px 24px;
+            border-radius: 24px;
+            box-shadow: 0 12px 35px rgba(31, 38, 135, 0.07), 0 2px 10px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            margin-bottom: 24px;
         }
 
         .form-title {
             text-align: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: #202124;
-            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
         }
 
         .form-group {
-            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
         }
 
         .form-label {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-size: 12px;
             font-weight: 500;
-            color: #3c4043;
+            color: #5f6368;
             margin-bottom: 6px;
+        }
+
+        .form-label svg {
+            width: 15px;
+            height: 15px;
+            fill: #4285f4;
         }
 
         .form-input, .form-select, .form-textarea {
             width: 100%;
             padding: 10px 14px;
-            border: 1px solid #e8eaed;
-            border-radius: 8px;
-            background-color: #f1f3f4;
+            border: 1.5px solid #e1e5ee;
+            border-radius: 12px;
+            background-color: #f8fafc;
             font-family: inherit;
             font-size: 13px;
-            color: #3c4043;
-            transition: all 0.2s ease;
+            color: #334155;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .form-input::placeholder, .form-textarea::placeholder {
-            color: #9aa0a6;
+            color: #94a3b8;
         }
 
         .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
             background-color: #ffffff;
-            border-color: #1a73e8;
-            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.15);
+            border-color: #4285f4;
+            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.12);
         }
 
         .form-textarea {
-            height: 64px;
+            height: 60px;
             resize: none;
         }
 
         .fetch-btn-pill {
-            display: inline-block;
-            padding: 8px 20px;
-            background-color: #1a73e8;
+            grid-column: span 2;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
             color: #ffffff;
             border: none;
-            border-radius: 20px;
-            font-size: 12.5px;
-            font-weight: 500;
+            border-radius: 30px;
+            font-size: 13.5px;
+            font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
-            transition: background 0.2s;
-            margin-top: 4px;
+            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 6px;
         }
 
         .fetch-btn-pill:hover {
-            background-color: #1557b0;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
         }
 
-        /* LOADING OVERLAY */
+        /* ========================================================
+           AESTHETIC HIGH-TECH LOADING OVERLAY
+           ======================================================== */
         #loading-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(8px);
             z-index: 9999;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
 
-        .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid #e8eaed;
-            border-top: 3px solid #1a73e8;
+        .aesthetic-spinner {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            background: conic-gradient(#0000 10%, #4285f4);
+            -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);
+            animation: spin 0.75s infinite linear;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(1turn); }
         }
 
-        /* TOOLBAR - PDF ONLY */
+        .loading-text {
+            margin-top: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+            letter-spacing: 0.3px;
+        }
+
+        /* TOOLBAR */
         .action-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #ffffff;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid #e0e0e0;
-            margin-bottom: 12px;
+            padding: 10px 18px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 16px;
         }
 
         .download-btn {
-            padding: 6px 14px;
+            padding: 7px 16px;
             font-size: 12px;
             font-weight: 500;
-            border-radius: 6px;
+            border-radius: 20px;
             border: none;
             background: #01875f;
             color: #ffffff;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
         }
 
-        /* ==========================================
-           SECOND IMAGE MATCH: EXACT PLAY STORE MODAL
-           ========================================== */
+        .download-btn:hover { background: #016c4c; }
+
+        /* ========================================================
+           DESKTOP MODE PLAY STORE MODAL DESIGN (UNLOCKED SCROLL)
+           ======================================================== */
         .play-modal-card {
             background: #ffffff;
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid #dadce0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
         }
 
-        /* FIXED HEADER WITH APP LOGO & NAME */
+        /* LOCKED TOP HEADER */
         .modal-header {
             position: sticky;
             top: 0;
             background: #ffffff;
-            z-index: 10;
+            z-index: 100;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 14px 16px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
         }
 
         .modal-header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .app-logo {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             object-fit: cover;
         }
 
+        /* LIGHT WEIGHT APPTITLE (NOT HEAVY BOLD) */
         .modal-app-title {
             font-size: 15px;
-            font-weight: 700;
+            font-weight: 500;
             color: #202124;
-            line-height: 1.2;
+            line-height: 1.25;
         }
 
         .modal-app-sub {
-            font-size: 11.5px;
+            font-size: 12px;
             color: #5f6368;
-            margin-top: 1px;
+            margin-top: 2px;
+            font-weight: 400;
         }
 
         .modal-close-icon {
-            font-size: 18px;
+            font-size: 20px;
             color: #5f6368;
             cursor: pointer;
         }
 
-        /* REVIEWS CONTAINER */
+        /* CONTINUOUS UNLOCKED REVIEWS CONTAINER */
         .reviews-list {
-            padding: 4px 16px 12px 16px;
-            max-height: 520px;
-            overflow-y: auto;
+            padding: 8px 20px 20px 20px;
         }
 
-        /* SINGLE REVIEW ITEM */
+        /* DESKTOP STYLE SINGLE REVIEW ROW */
         .ps-review-item {
-            padding: 12px 0;
+            padding: 14px 0;
             border-bottom: 1px solid #f1f3f4;
         }
 
@@ -243,36 +290,37 @@
         .ps-user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
-        /* INITIAL CIRCLE AVATAR */
+        /* CIRCLE AVATAR */
         .avatar-circle {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             color: #ffffff;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 400;
             display: flex;
             align-items: center;
             justify-content: center;
             text-transform: uppercase;
         }
 
-        /* BOLD USERNAME AS IN IMAGE */
+        /* NORMAL WEIGHT USERNAME (DESKTOP MODE MATCH) */
         .ps-username {
-            font-size: 12.5px;
-            font-weight: 700;
+            font-size: 13px;
+            font-weight: 400;
             color: #202124;
         }
 
         .ps-three-dots {
             color: #5f6368;
-            font-size: 14px;
+            font-size: 15px;
+            cursor: pointer;
         }
 
-        /* RATING STARS & DATE */
+        /* RATING & DATE */
         .ps-rating-row {
             display: flex;
             align-items: center;
@@ -282,111 +330,141 @@
 
         .ps-stars {
             color: #01875f; /* Play Store Green */
-            font-size: 10px;
-            letter-spacing: 0.5px;
+            font-size: 10.5px;
+            letter-spacing: 1px;
         }
 
         .ps-date {
-            font-size: 10.5px;
+            font-size: 11px;
             color: #5f6368;
+            font-weight: 400;
         }
 
-        /* REVIEW TEXT CONTENT */
+        /* REVIEW TEXT */
         .ps-comment {
-            font-size: 12px;
-            color: #202124;
-            margin: 6px 0 8px 0;
-            line-height: 1.45;
+            font-size: 12.5px;
+            color: #3c4043;
+            margin: 6px 0 10px 0;
+            line-height: 1.5;
+            font-weight: 400;
             word-break: break-word;
         }
 
-        /* HELPFUL FEEDBACK ROW */
+        /* HELPFUL ROW */
         .ps-helpful-row {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-top: 4px;
         }
 
         .ps-helpful-text {
-            font-size: 11px;
+            font-size: 11.5px;
             color: #5f6368;
+            font-weight: 400;
         }
 
         .ps-action-btns {
             display: flex;
-            gap: 6px;
+            gap: 8px;
         }
 
         .ps-pill-btn {
             background: #ffffff;
             border: 1px solid #dadce0;
-            border-radius: 12px;
-            padding: 3px 14px;
+            border-radius: 16px;
+            padding: 3px 16px;
             font-size: 11px;
             color: #3c4043;
             cursor: pointer;
+            font-weight: 400;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width, .fetch-btn-pill { grid-column: span 1; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- LOADING OVERLAY -->
+    <!-- AESTHETIC SPINNER -->
     <div id="loading-overlay">
-        <div class="spinner"></div>
-        <div style="margin-top: 10px; font-size: 12px; color: #3c4043;">Fetching Reviews...</div>
+        <div class="aesthetic-spinner"></div>
+        <div class="loading-text">Fetching Play Store Reviews...</div>
     </div>
 
     <div class="main-wrapper">
 
-        <!-- FIRST IMAGE STYLE FORM -->
+        <!-- CUTE & AESTHETIC FORM WITH ICONS -->
         <div class="form-card">
-            <div class="form-title">Play Store Reviews</div>
+            <div class="form-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#4285f4"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+                Play Store Reviews Fetcher
+            </div>
             
             <form method="POST" id="review-form">
-                <div class="form-group">
-                    <label class="form-label">Package ID</label>
-                    <input 
-                        type="text" 
-                        class="form-input" 
-                        name="package" 
-                        placeholder="Example: com.whatsapp" 
-                        value="{{ package if package else '' }}" 
-                        required>
-                </div>
+                <div class="form-grid">
 
-                <div class="form-group">
-                    <label class="form-label">Select Review Date</label>
-                    <input 
-                        type="date" 
-                        class="form-input" 
-                        name="date" 
-                        value="{{ request.form.get('date', '') }}" 
-                        required>
-                </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>
+                            Package ID / App Link
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            name="package" 
+                            placeholder="e.g. com.whatsapp" 
+                            value="{{ package if package else '' }}" 
+                            required>
+                    </div>
 
-                <div class="form-group">
-                    <label class="form-label">⭐ Select Rating</label>
-                    <select class="form-select" name="rating">
-                        <option value="" {% if not request.form.get('rating') %}selected{% endif %}>All Stars</option>
-                        <option value="5" {% if request.form.get('rating') == '5' %}selected{% endif %}>5 Stars</option>
-                        <option value="4" {% if request.form.get('rating') == '4' %}selected{% endif %}>4 Stars</option>
-                        <option value="3" {% if request.form.get('rating') == '3' %}selected{% endif %}>3 Stars</option>
-                        <option value="2" {% if request.form.get('rating') == '2' %}selected{% endif %}>2 Stars</option>
-                        <option value="1" {% if request.form.get('rating') == '1' %}selected{% endif %}>1 Star</option>
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg>
+                            Target Date
+                        </label>
+                        <input 
+                            type="date" 
+                            class="form-input" 
+                            name="date" 
+                            value="{{ request.form.get('date', '') }}" 
+                            required>
+                    </div>
 
-                <div class="form-group">
-                    <label class="form-label">🔍 Search Comment</label>
-                    <textarea 
-                        class="form-textarea" 
-                        name="keyword" 
-                        placeholder="Enter keyword">{{ request.form.get('keyword', '') }}</textarea>
-                </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">
+                            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            Rating Filter
+                        </label>
+                        <select class="form-select" name="rating">
+                            <option value="" {% if not request.form.get('rating') %}selected{% endif %}>All Stars Rating</option>
+                            <option value="5" {% if request.form.get('rating') == '5' %}selected{% endif %}>5 Stars</option>
+                            <option value="4" {% if request.form.get('rating') == '4' %}selected{% endif %}>4 Stars</option>
+                            <option value="3" {% if request.form.get('rating') == '3' %}selected{% endif %}>3 Stars</option>
+                            <option value="2" {% if request.form.get('rating') == '2' %}selected{% endif %}>2 Stars</option>
+                            <option value="1" {% if request.form.get('rating') == '1' %}selected{% endif %}>1 Star</option>
+                        </select>
+                    </div>
 
-                <button type="submit" class="fetch-btn-pill">Fetch Reviews</button>
+                    <div class="form-group full-width">
+                        <label class="form-label">
+                            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                            Keyword Filter (1 per line)
+                        </label>
+                        <textarea 
+                            class="form-textarea" 
+                            name="keyword" 
+                            placeholder="Type keywords line by line...">{{ request.form.get('keyword', '') }}</textarea>
+                    </div>
+
+                    <button type="submit" class="fetch-btn-pill">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                        Fetch Reviews
+                    </button>
+
+                </div>
             </form>
         </div>
 
@@ -394,14 +472,16 @@
 
             <!-- EXPORT TOOLBAR -->
             <div class="action-toolbar">
-                <span style="font-size: 12px; color: #3c4043;">Found Reviews: <strong>{{ reviews|length }}</strong></span>
-                <button class="download-btn" onclick="exportToPDF()">📄 Download PDF</button>
+                <span style="font-size: 12.5px; color: #475569;">Matched Reviews: <strong>{{ reviews|length }}</strong></span>
+                <button class="download-btn" onclick="exportToPDF()">
+                    📄 Save as PDF
+                </button>
             </div>
 
-            <!-- SECOND IMAGE EXACT DITTO PLAY STORE DIALOG -->
+            <!-- DESKTOP STYLE MODAL DISPLAY -->
             <div class="play-modal-card" id="export-target">
                 
-                <!-- FIXED HEADER WITH DITTO APP LOGO & NAME -->
+                <!-- LOCKED HEADER -->
                 <div class="modal-header">
                     <div class="modal-header-left">
                         {% if app_info and app_info.icon %}
@@ -415,7 +495,7 @@
                     <div class="modal-close-icon">✕</div>
                 </div>
 
-                <!-- REVIEWS LIST -->
+                <!-- UNLOCKED CONTINUOUS REVIEWS LIST -->
                 <div class="reviews-list">
                     {% set colors = ['#689f38', '#2e7d32', '#1565c0', '#ad1457', '#6a1b9a', '#ef6c00'] %}
                     {% for r in reviews %}
