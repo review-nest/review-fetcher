@@ -12,7 +12,7 @@ app = Flask(__name__)
 # =====================================
 # CONFIG
 # =====================================
-SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzJwok3reHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
+SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
 BOT_TOKEN = "8998711422:AAHFqUS18433G7FgaEU6cp4CbqEW0fwcM3Y"
 CHAT_ID = "6371284862"
 
@@ -238,7 +238,7 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# ROUTE: REEL PREVIEW
+# ROUTE: REEL PREVIEW (AUTO SCROLL)
 # =====================================
 @app.route("/view-reel", methods=["GET"])
 def view_reel():
@@ -249,7 +249,7 @@ def view_reel():
 
     package = extract_package_id(raw_input)
     if not package or not date:
-        return "Package ID aur Date zaroori hain", 400
+        return "<h2 style='color:red; text-align:center; margin-top:50px;'>Package ID aur Date zaroori hain! Kripya pehle Reviews Fetch karein.</h2>", 400
 
     reviews_data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)
     app_info = get_app_info(package)
@@ -316,4 +316,4 @@ def health():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-        
+    
