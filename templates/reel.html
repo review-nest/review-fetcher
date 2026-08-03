@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Store Review Reel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Mobile Screen Outer Container */
+        .phone-container {
+            width: 380px;
+            height: 760px;
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(255,255,255,0.1);
+            border: 2px solid #333;
+        }
+
+        /* Play Store Header */
+        .app-header {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            background: #ffffff;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            z-index: 100;
+        }
+
+        .app-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+        }
+
+        .app-title-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #202124;
+        }
+
+        .app-sub {
+            font-size: 12px;
+            color: #01875f;
+            font-weight: 500;
+        }
+
+        /* Continuous Smooth Auto Scroll Container */
+        .scroll-wrapper {
+            position: absolute;
+            top: 75px;
+            width: 100%;
+            padding: 0 16px;
+            animation: autoScroll 30s linear infinite;
+        }
+
+        @keyframes autoScroll {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-80%);
+            }
+        }
+
+        /* Play Store Review Card Style */
+        .review-card {
+            background: #ffffff;
+            border-bottom: 1px solid #eeeeee;
+            padding: 16px 0;
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1a73e8;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #202124;
+        }
+
+        .stars-date {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #5f6368;
+            margin-bottom: 8px;
+        }
+
+        .stars {
+            color: #01875f;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .review-text {
+            font-size: 13px;
+            color: #3c4043;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <div class="app-header">
+            {% if app_info.icon %}
+                <img src="{{ app_info.icon }}" class="app-icon" alt="App Icon">
+            {% endif %}
+            <div class="app-title-box">
+                <div class="app-title">{{ app_info.title if app_info.title else 'Google Play Reviews' }}</div>
+                <div class="app-sub">Ratings & Reviews</div>
+            </div>
+        </div>
+
+        <div class="scroll-wrapper">
+            {% for r in reviews %}
+            <div class="review-card">
+                <div class="user-header">
+                    <div class="avatar">{{ r.userName[0]|upper if r.userName else 'G' }}</div>
+                    <div class="user-name">{{ r.userName }}</div>
+                </div>
+                <div class="stars-date">
+                    <span class="stars">
+                        {% for i in range(r.score) %}★{% endfor %}{% for i in range(5 - r.score) %}☆{% endfor %}
+                    </span>
+                    <span>{{ r.at.strftime('%d %b %Y') if r.at.strftime is defined else r.at[:10] }}</span>
+                </div>
+                <div class="review-text">
+                    {{ r.content }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>
