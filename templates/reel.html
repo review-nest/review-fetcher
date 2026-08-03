@@ -1,82 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play Store Review Reel</title>
+    <title>{{ app_info.title if app_info else 'Play Store' }} - Reviews Reel</title>
     <style>
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            background-color: #000000;
+            background-color: #000;
+            color: #fff;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
-            overflow: hidden;
         }
 
-        /* Mobile Screen Outer Container */
-        .phone-container {
-            width: 380px;
-            height: 760px;
-            background: #ffffff;
-            border-radius: 24px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 10px 40px rgba(255,255,255,0.1);
-            border: 2px solid #333;
-        }
-
-        /* Play Store Header */
-        .app-header {
-            position: absolute;
-            top: 0;
+        .phone-wrapper {
             width: 100%;
+            max-width: 412px;
+            height: 850px;
+            background: #ffffff;
+            color: #202124;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
             background: #ffffff;
             padding: 16px;
+            border-bottom: 1px solid #e8eaed;
+            z-index: 10;
             display: flex;
             align-items: center;
             gap: 12px;
-            border-bottom: 1px solid #e0e0e0;
-            z-index: 100;
         }
 
-        .app-icon {
-            width: 42px;
-            height: 42px;
+        .header img {
+            width: 45px;
+            height: 45px;
             border-radius: 10px;
+            object-fit: cover;
         }
 
-        .app-title-box {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .app-title {
-            font-size: 15px;
+        .header-info h2 {
+            font-size: 16px;
             font-weight: 600;
             color: #202124;
         }
 
-        .app-sub {
+        .header-info p {
             font-size: 12px;
-            color: #01875f;
-            font-weight: 500;
+            color: #5f6368;
         }
 
-        /* Continuous Smooth Auto Scroll Container */
-        .scroll-wrapper {
-            position: absolute;
-            top: 75px;
-            width: 100%;
-            padding: 0 16px;
-            animation: autoScroll 30s linear infinite;
+        /* Continuous Smooth Scroll Area */
+        .scroll-container {
+            height: calc(100% - 80px);
+            overflow-y: hidden;
+            position: relative;
+        }
+
+        .scroll-content {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: autoScroll 35s linear infinite;
         }
 
         @keyframes autoScroll {
@@ -84,18 +84,19 @@
                 transform: translateY(0);
             }
             100% {
-                transform: translateY(-80%);
+                transform: translateY(-50%);
             }
         }
 
-        /* Play Store Review Card Style */
+        /* Review Card Style */
         .review-card {
-            background: #ffffff;
-            border-bottom: 1px solid #eeeeee;
-            padding: 16px 0;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
         }
 
-        .user-header {
+        .user-row {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -103,80 +104,144 @@
         }
 
         .avatar {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: #1a73e8;
-            color: white;
+            background: #1e293b;
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            font-weight: bold;
             font-size: 14px;
         }
 
         .user-name {
             font-size: 14px;
-            font-weight: 500;
-            color: #202124;
-        }
-
-        .stars-date {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #5f6368;
-            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e293b;
         }
 
         .stars {
             color: #01875f;
-            font-size: 13px;
-            letter-spacing: 1px;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .review-date {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 8px;
         }
 
         .review-text {
             font-size: 13px;
-            color: #3c4043;
-            line-height: 1.45;
-            word-break: break-word;
+            color: #334155;
+            line-height: 1.4;
+        }
+
+        .control-panel {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #01875f;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: #016c4c;
         }
     </style>
 </head>
 <body>
 
-    <div class="phone-container">
-        <div class="app-header">
-            {% if app_info.icon %}
-                <img src="{{ app_info.icon }}" class="app-icon" alt="App Icon">
+    <div class="phone-wrapper" id="reelContainer">
+        <div class="header">
+            {% if app_info and app_info.icon %}
+                <img src="{{ app_info.icon }}" alt="icon">
+            {% else %}
+                <div class="avatar">📱</div>
             {% endif %}
-            <div class="app-title-box">
-                <div class="app-title">{{ app_info.title if app_info.title else 'Google Play Reviews' }}</div>
-                <div class="app-sub">Ratings & Reviews</div>
+            <div class="header-info">
+                <h2>{{ app_info.title if app_info else 'Ratings & Reviews' }}</h2>
+                <p>Google Play Store Reviews</p>
             </div>
         </div>
 
-        <div class="scroll-wrapper">
-            {% for r in reviews %}
-            <div class="review-card">
-                <div class="user-header">
-                    <div class="avatar">{{ r.userName[0]|upper if r.userName else 'G' }}</div>
-                    <div class="user-name">{{ r.userName }}</div>
+        <div class="scroll-container">
+            <div class="scroll-content" id="scrollContent">
+                {% for r in reviews %}
+                <div class="review-card">
+                    <div class="user-row">
+                        <div class="avatar">{{ r.userName[0] if r.userName else 'U' }}</div>
+                        <div class="user-name">{{ r.userName }}</div>
+                    </div>
+                    <div class="stars">
+                        {% for i in range(r.score) %}★{% endfor %}
+                    </div>
+                    <div class="review-date">{{ r.at }}</div>
+                    <div class="review-text">{{ r.content }}</div>
                 </div>
-                <div class="stars-date">
-                    <span class="stars">
-                        {% for i in range(r.score) %}★{% endfor %}{% for i in range(5 - r.score) %}☆{% endfor %}
-                    </span>
-                    <span>{{ r.at.strftime('%d %b %Y') if r.at.strftime is defined else r.at[:10] }}</span>
+                {% endfor %}
+
+                {% for r in reviews %}
+                <div class="review-card">
+                    <div class="user-row">
+                        <div class="avatar">{{ r.userName[0] if r.userName else 'U' }}</div>
+                        <div class="user-name">{{ r.userName }}</div>
+                    </div>
+                    <div class="stars">
+                        {% for i in range(r.score) %}★{% endfor %}
+                    </div>
+                    <div class="review-date">{{ r.at }}</div>
+                    <div class="review-text">{{ r.content }}</div>
                 </div>
-                <div class="review-text">
-                    {{ r.content }}
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
 
+    <div class="control-panel">
+        <button class="btn" onclick="downloadScreenVideo()">🎬 Record & Save Video</button>
+    </div>
+
+    <script>
+        async function downloadScreenVideo() {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { mediaSource: "screen" }
+                });
+
+                const mediaRecorder = new MediaRecorder(stream);
+                const chunks = [];
+
+                mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: "video/mp4" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "PlayStore_Reviews_Reel.mp4";
+                    a.click();
+                };
+
+                mediaRecorder.start();
+                alert("Recording started! Stop recording from screen notification to save video in gallery.");
+
+            } catch (err) {
+                alert("Screen Recording option selected or canceled.");
+            }
+        }
+    </script>
 </body>
 </html>
