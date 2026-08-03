@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, send_file
 from google_play_scraper import reviews, Sort, app as play_app
 import threading
@@ -10,13 +11,23 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 # =====================================
-# MOVIEPY SAFE IMPORT FIX (v1.x & v2.x)
+# MOVIEPY SAFE IMPORT FIX (RENDER COMPATIBLE)
 # =====================================
+ImageClip = None
+concatenate_videoclips = None
+
 try:
-    from moviepy.editor import ImageClip, concatenate_videoclips
-except ImportError:
-    from moviepy.video.io.ImageClip import ImageClip
-    from moviepy.video.compositing.concatenate import concatenate_videoclips
+    from moviepy.editor import ImageClip as IC, concatenate_videoclips as CVC
+    ImageClip = IC
+    concatenate_videoclips = CVC
+except Exception:
+    try:
+        from moviepy.video.io.ImageClip import ImageClip as IC
+        from moviepy.video.compositing.concatenate import concatenate_videoclips as CVC
+        ImageClip = IC
+        concatenate_videoclips = CVC
+    except Exception as e:
+        print("Warning: MoviePy could not be imported:", e)
 
 app = Flask(__name__)
 
@@ -256,7 +267,7 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# PERFECT FRAME GENERATOR FOR VIDEO
+# FRAME GENERATOR FOR VIDEO
 # =====================================
 def create_review_frame(user_name, rating_score, content, app_title, output_path):
     img = Image.new('RGB', (1080, 1920), color='#f8fafc')
@@ -269,10 +280,10 @@ def create_review_frame(user_name, rating_score, content, app_title, output_path
     except:
         font_header = font_sub = font_content = ImageFont.load_default()
 
-    # White Card Frame
+    # Card Frame
     draw.rounded_rectangle([80, 450, 1000, 1450], radius=32, fill="#ffffff", outline="#dadce0", width=2)
 
-    # App Info
+    # Header Text
     draw.text((120, 510), str(app_title)[:30], fill="#202124", font=font_header)
     draw.text((120, 570), "Play Store Ratings & Reviews", fill="#5f6368", font=font_sub)
 
@@ -284,7 +295,7 @@ def create_review_frame(user_name, rating_score, content, app_title, output_path
     stars = "★" * int(rating_score)
     draw.text((120, 750), stars, fill="#01875f", font=font_header)
 
-    # Wrapped Text Content
+    # Content Wrap
     words = content.split()
     lines = []
     current_line = ""
@@ -305,12 +316,15 @@ def create_review_frame(user_name, rating_score, content, app_title, output_path
     img.save(output_path)
 
 # =====================================
-# VIDEO GENERATION ROUTE (EXACT END)
+# VIDEO GENERATION ROUTE
 # =====================================
 @app.route("/generate-video", methods=["POST"])
 def generate_video():
     global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
     
+    if ImageClip is None or concatenate_videoclips is None:
+        return "Video module is not available on server.", 500
+
     if not CURRENT_FETCHED_REVIEWS:
         return "No reviews available to generate video", 400
 
@@ -318,7 +332,6 @@ def generate_video():
     temp_images = []
     app_title = CURRENT_APP_INFO.get("title", "App Reviews")
 
-    # Limit to maximum 10 latest reviews
     sample_reviews = CURRENT_FETCHED_REVIEWS[:10]
 
     for idx, r in enumerate(sample_reviews):
@@ -332,18 +345,14 @@ def generate_video():
         )
         temp_images.append(img_filename)
 
-        # 3 Seconds per slide
         clip = ImageClip(img_filename).set_duration(3.0)
         clips.append(clip)
 
-    # Sequence Clips without extra blank frames
     final_video = concatenate_videoclips(clips, method="compose")
     output_filename = "PlayStore_Reviews_Video.mp4"
     
-    # Save exact duration video
     final_video.write_videofile(output_filename, fps=24, codec="libx264", audio=False)
 
-    # Clean up Temp Files
     for img_file in temp_images:
         if os.path.exists(img_file):
             os.remove(img_file)
