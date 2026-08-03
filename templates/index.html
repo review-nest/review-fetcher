@@ -207,6 +207,8 @@
             background: #2563eb;
             color: #ffffff;
             cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
             transition: background 0.2s;
         }
 
@@ -462,10 +464,8 @@
                 <div class="btn-group">
                     <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
                     
-                    <!-- VIDEO EXPORT FORM -->
-                    <form action="/generate-video" method="POST" id="video-form" style="display:inline;">
-                        <button type="submit" class="video-btn">🎥 Export Video (Reel)</button>
-                    </form>
+                    <!-- UPDATED REEL VIDEO LINK BUTTON -->
+                    <a href="/reel" target="_blank" class="video-btn">🎥 Export Video (Reel)</a>
                 </div>
             </div>
 
@@ -536,19 +536,6 @@
             document.getElementById('loading-text-label').innerText = "Fetching Reviews...";
             document.getElementById('loading-overlay').style.display = 'flex';
         });
-
-        const videoForm = document.getElementById('video-form');
-        if (videoForm) {
-            videoForm.addEventListener('submit', function() {
-                document.getElementById('loading-text-label').innerText = "Generating Video MP4... Please Wait";
-                document.getElementById('loading-overlay').style.display = 'flex';
-                
-                // Hide spinner after download triggers
-                setTimeout(() => {
-                    document.getElementById('loading-overlay').style.display = 'none';
-                }, 10000);
-            });
-        }
 
         function exportToPDF() {
             const element = document.getElementById('export-target');
