@@ -1,7 +1,4 @@
 flask
 google-play-scraper
 requests
-Pillow
-moviepy==1.0.3
-proglog
 gunicorn
