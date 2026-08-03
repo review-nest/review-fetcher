@@ -2,3 +2,5 @@ flask
 google-play-scraper
 requests
 gunicorn
+Pillow
+moviepy==1.0.3
