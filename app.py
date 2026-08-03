@@ -1,13 +1,11 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request
 from google_play_scraper import reviews, Sort, app as play_app
 import threading
 import requests
 import json
 import re
 import time
-import os
 from datetime import datetime
-from PIL import Image, ImageDraw, ImageFont
 
 app = Flask(__name__)
 
@@ -240,7 +238,7 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# NEW ROUTE: REEL PREVIEW (ZERO RAM CRASH)
+# ROUTE: REEL PREVIEW
 # =====================================
 @app.route("/view-reel", methods=["GET"])
 def view_reel():
@@ -318,4 +316,4 @@ def health():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-    
+        
