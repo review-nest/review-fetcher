@@ -1,5 +1,6 @@
 flask
 google-play-scraper
 requests
+pillow
+moviepy
 gunicorn
-Pillow
