@@ -8,7 +8,15 @@ import time
 import os
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
-from moviepy.editor import ImageClip, concatenate_videoclips
+
+# =====================================
+# MOVIEPY SAFE IMPORT FIX (v1.x & v2.x)
+# =====================================
+try:
+    from moviepy.editor import ImageClip, concatenate_videoclips
+except ImportError:
+    from moviepy.video.io.ImageClip import ImageClip
+    from moviepy.video.compositing.concatenate import concatenate_videoclips
 
 app = Flask(__name__)
 
