@@ -8,21 +8,26 @@ import time
 import os
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
+from moviepy.editor import ImageClip, concatenate_videoclips
 
 app = Flask(__name__)
 
 # =====================================
 # CONFIG
 # =====================================
-SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
+SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzJwok3reHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
 BOT_TOKEN = "8998711422:AAHFqUS18433G7FgaEU6cp4CbqEW0fwcM3Y"
 CHAT_ID = "6371284862"
 
 MAX_FETCH = 50000
 BATCH_SIZE = 300
 
+# Global storage for fetched reviews and app info
+CURRENT_FETCHED_REVIEWS = []
+CURRENT_APP_INFO = {}
+
 # =====================================
-# UTILITY: EXTRACT PACKAGE NAME
+# UTILITY: EXTRACT PACKAGE NAME FROM LINK/ID
 # =====================================
 def extract_package_id(input_str):
     if not input_str:
@@ -57,7 +62,7 @@ def send_bot_message(app_name, date, total):
         print("Telegram Error :", e)
 
 # =====================================
-# GOOGLE SHEET UPLOAD
+# GOOGLE SHEET UPLOAD (BACKGROUND TASK)
 # =====================================
 def save_batch(package, search_date, rows):
     try:  
@@ -101,6 +106,7 @@ def process_and_upload_async(package, search_date, reviews_data, app_title):
 
     for i in range(0, len(rows), BATCH_SIZE):  
         batch = rows[i:i + BATCH_SIZE]  
+        print(f"Uploading Batch {i + len(batch)}/{len(rows)}")  
         save_batch(package, rows[0]["date"], batch)  
         time.sleep(0.3)  
 
@@ -232,6 +238,8 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
 
             data.append(review)  
 
+        print(f"Scanned : {total_scanned} | Matched : {len(data)}")  
+
         if stop or token is None or total_scanned >= MAX_FETCH:  
             break  
 
@@ -240,59 +248,132 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# ROUTE: REEL PREVIEW (ZERO RAM CRASH)
+# PERFECT FRAME GENERATOR FOR VIDEO
 # =====================================
-@app.route("/view-reel", methods=["GET"])
-def view_reel():
-    raw_input = request.args.get("package", "").strip()
-    date = request.args.get("date", "").strip()
-    rating = request.args.get("rating", "").strip()
-    keyword = request.args.get("keyword", "").strip()
+def create_review_frame(user_name, rating_score, content, app_title, output_path):
+    img = Image.new('RGB', (1080, 1920), color='#f8fafc')
+    draw = ImageDraw.Draw(img)
 
-    package = extract_package_id(raw_input)
-    if not package or not date:
-        return "<h3 style='color:red; text-align:center;'>Package ID aur Date required hain</h3>", 400
+    try:
+        font_header = ImageFont.truetype("arial.ttf", 45)
+        font_sub = ImageFont.truetype("arial.ttf", 35)
+        font_content = ImageFont.truetype("arial.ttf", 36)
+    except:
+        font_header = font_sub = font_content = ImageFont.load_default()
 
-    reviews_data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)
-    app_info = get_app_info(package)
+    # White Card Frame
+    draw.rounded_rectangle([80, 450, 1000, 1450], radius=32, fill="#ffffff", outline="#dadce0", width=2)
 
-    return render_template(
-        "reel.html",
-        reviews=reviews_data,
-        app_info=app_info
-    )
+    # App Info
+    draw.text((120, 510), str(app_title)[:30], fill="#202124", font=font_header)
+    draw.text((120, 570), "Play Store Ratings & Reviews", fill="#5f6368", font=font_sub)
+
+    # Divider
+    draw.line([(120, 640), (960, 640)], fill="#e8eaed", width=2)
+
+    # User & Stars
+    draw.text((120, 680), f"👤  {user_name}", fill="#202124", font=font_header)
+    stars = "★" * int(rating_score)
+    draw.text((120, 750), stars, fill="#01875f", font=font_header)
+
+    # Wrapped Text Content
+    words = content.split()
+    lines = []
+    current_line = ""
+    for word in words:
+        if len(current_line + " " + word) <= 35:
+            current_line += " " + word
+        else:
+            lines.append(current_line.strip())
+            current_line = word
+    if current_line:
+        lines.append(current_line.strip())
+
+    y_offset = 840
+    for line in lines[:8]:
+        draw.text((120, y_offset), line, fill="#3c4043", font=font_content)
+        y_offset += 55
+
+    img.save(output_path)
+
+# =====================================
+# VIDEO GENERATION ROUTE (EXACT END)
+# =====================================
+@app.route("/generate-video", methods=["POST"])
+def generate_video():
+    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
+    
+    if not CURRENT_FETCHED_REVIEWS:
+        return "No reviews available to generate video", 400
+
+    clips = []
+    temp_images = []
+    app_title = CURRENT_APP_INFO.get("title", "App Reviews")
+
+    # Limit to maximum 10 latest reviews
+    sample_reviews = CURRENT_FETCHED_REVIEWS[:10]
+
+    for idx, r in enumerate(sample_reviews):
+        img_filename = f"temp_frame_{idx}.png"
+        create_review_frame(
+            user_name=r.get("userName", "Google User"),
+            rating_score=r.get("score", 5),
+            content=r.get("content", ""),
+            app_title=app_title,
+            output_path=img_filename
+        )
+        temp_images.append(img_filename)
+
+        # 3 Seconds per slide
+        clip = ImageClip(img_filename).set_duration(3.0)
+        clips.append(clip)
+
+    # Sequence Clips without extra blank frames
+    final_video = concatenate_videoclips(clips, method="compose")
+    output_filename = "PlayStore_Reviews_Video.mp4"
+    
+    # Save exact duration video
+    final_video.write_videofile(output_filename, fps=24, codec="libx264", audio=False)
+
+    # Clean up Temp Files
+    for img_file in temp_images:
+        if os.path.exists(img_file):
+            os.remove(img_file)
+
+    return send_file(output_filename, as_attachment=True, mimetype="video/mp4")
 
 # =====================================
 # MAIN ROUTE
 # =====================================
 @app.route("/", methods=["GET", "POST"])
 def home():
+    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
     data = []  
     raw_input = ""  
     package = ""
     app_info = {}  
-    selected_date = ""
-    selected_rating = ""
-    selected_keyword = ""
 
     if request.method == "POST":  
         raw_input = request.form.get("package", "").strip()  
-        selected_date = request.form.get("date", "").strip()  
-        selected_rating = request.form.get("rating", "").strip()  
-        selected_keyword = request.form.get("keyword", "").strip()  
+        date = request.form.get("date", "").strip()  
+        rating = request.form.get("rating", "").strip()  
+        keyword = request.form.get("keyword", "").strip()  
 
         package = extract_package_id(raw_input)
 
         if package:  
             app_info = get_app_info(package)  
 
-        if package and selected_date:  
-            data = fetch_reviews(package=package, search_date=selected_date, rating=selected_rating, keyword=selected_keyword)  
+        if package and date:  
+            data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)  
+
+            CURRENT_FETCHED_REVIEWS = data
+            CURRENT_APP_INFO = app_info
 
             if len(data) > 0:  
                 thread = threading.Thread(
                     target=process_and_upload_async, 
-                    args=(package, selected_date, data, app_info.get("title", package))
+                    args=(package, date, data, app_info.get("title", package))
                 )
                 thread.start()
 
@@ -300,10 +381,7 @@ def home():
         "index.html",  
         reviews=data,  
         package=raw_input,  
-        app_info=app_info,
-        selected_date=selected_date,
-        selected_rating=selected_rating,
-        selected_keyword=selected_keyword
+        app_info=app_info  
     )  
 
 # =====================================
