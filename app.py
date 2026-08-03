@@ -31,10 +31,6 @@ CHAT_ID = "6371284862"
 MAX_FETCH = 50000
 BATCH_SIZE = 300
 
-# Global variable to hold last fetched reviews for video rendering
-CURRENT_FETCHED_REVIEWS = []
-CURRENT_APP_INFO = {}
-
 # =====================================
 # UTILITY: EXTRACT PACKAGE NAME FROM LINK/ID
 # =====================================
@@ -45,6 +41,8 @@ def extract_package_id(input_str):
     - com.whatsapp -> com.whatsapp
     - https://play.google.com/store/apps/details?id=com.whatsapp -> com.whatsapp
     """
+    if not input_str:
+        return ""
     input_str = input_str.strip()
     match = re.search(r'id=([a-zA-Z0-9_.]+)', input_str)
     if match:
@@ -93,9 +91,6 @@ def save_batch(package, search_date, rows):
         print("Batch Upload Error :", e)
 
 def process_and_upload_async(package, search_date, reviews_data, app_title):
-    """
-    Background worker so Web UI doesn't freeze or timeout.
-    """
     rows = []  
     for r in reviews_data:  
         at = r.get("at")  
@@ -242,7 +237,6 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
             total_scanned += 1  
             r_date = review_date(review)  
 
-            # Stop scanning if we hit dates older than requested date
             if r_date < search_date:  
                 stop = True  
                 break  
@@ -273,8 +267,6 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
 # VIDEO RENDER HELPER FUNCTION
 # =====================================
 def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title):
-    """Draws an aesthetic card at a given Y offset on 1080 wide canvas."""
-    # Background Card Frame
     draw.rounded_rectangle([80, y_offset, 1000, y_offset + 850], radius=32, fill="#ffffff", outline="#dadce0", width=3)
 
     try:
@@ -284,20 +276,16 @@ def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title
     except Exception:
         font_header = font_sub = font_content = ImageFont.load_default()
 
-    # Header - App Name
     draw.text((120, y_offset + 50), str(app_title)[:30], fill="#202124", font=font_header)
     draw.text((120, y_offset + 110), "Play Store Review", fill="#5f6368", font=font_sub)
 
-    # Divider Line
     draw.line([(120, y_offset + 170), (960, y_offset + 170)], fill="#e8eaed", width=2)
 
-    # User Info & Stars
     draw.text((120, y_offset + 200), f"👤  {user_name}", fill="#202124", font=font_header)
     
     stars = "★" * int(rating_score) + "☆" * (5 - int(rating_score))
     draw.text((120, y_offset + 270), stars, fill="#01875f", font=font_header)
 
-    # Review Content Wrapped
     words = content.split()
     lines = []
     current_line = ""
@@ -311,22 +299,35 @@ def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title
         lines.append(current_line.strip())
 
     text_y = y_offset + 360
-    for line in lines[:6]:  # Limit to 6 lines to fit neatly in card
+    for line in lines[:6]:
         draw.text((120, text_y), line, fill="#3c4043", font=font_content)
         text_y += 50
 
 # =====================================
-# VIDEO GENERATION ROUTE
+# VIDEO GENERATION ROUTE (SELF FETCH - FIXED)
 # =====================================
 @app.route("/generate-video", methods=["POST"])
 def generate_video():
-    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
-    
-    if not CURRENT_FETCHED_REVIEWS:
-        return "No reviews available to generate video", 400
+    raw_input = request.form.get("package", "").strip()
+    date = request.form.get("date", "").strip()
+    rating = request.form.get("rating", "").strip()
+    keyword = request.form.get("keyword", "").strip()
 
-    app_title = CURRENT_APP_INFO.get("title", "App Reviews")
-    sample_reviews = CURRENT_FETCHED_REVIEWS[:8]  # Takes up to 8 reviews
+    package = extract_package_id(raw_input)
+    
+    if not package or not date:
+        return "Package ID and Date are required to generate video", 400
+
+    # Direct fresh fetch for video (Fixes 'No reviews available' error)
+    sample_reviews = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)
+    
+    if not sample_reviews:
+        return "No reviews found for this date to generate video", 400
+
+    app_info = get_app_info(package)
+    app_title = app_info.get("title", package)
+    
+    sample_reviews = sample_reviews[:8]  # Limit to top 8 reviews
     
     card_height = 950
     total_reviews = len(sample_reviews)
@@ -379,7 +380,6 @@ def generate_video():
 # =====================================
 @app.route("/", methods=["GET", "POST"])
 def home():
-    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
     data = []  
     raw_input = ""  
     package = ""
@@ -404,9 +404,6 @@ def home():
             print("=" * 50)  
 
             data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)  
-
-            CURRENT_FETCHED_REVIEWS = data
-            CURRENT_APP_INFO = app_info
 
             if len(data) > 0:  
                 thread = threading.Thread(
@@ -440,4 +437,4 @@ if __name__ == "__main__":
     print("Google Play Review Fetcher Started")  
     print("=" * 50)  
     app.run(host="0.0.0.0", port=5000, debug=True)
-                          
+        
