@@ -35,9 +35,6 @@
             max-width: 680px;
         }
 
-        /* ========================================================
-           CLEAN & PROFESSIONAL AESTHETIC FORM CARD
-           ======================================================== */
         .form-card {
             background: #ffffff;
             padding: 28px 26px;
@@ -132,9 +129,6 @@
             background: #1d4ed8;
         }
 
-        /* ========================================================
-           AESTHETIC LOADING SPINNER
-           ======================================================== */
         #loading-overlay {
             display: none;
             position: fixed;
@@ -216,9 +210,7 @@
 
         .reel-btn:hover { background: #7c3aed; }
 
-        /* ========================================================
-           DESKTOP MODE PLAY STORE MODAL (CLEAN & ACCURATE)
-           ======================================================== */
+        /* PLAY STORE MODAL CARD */
         .play-modal-card {
             background: #ffffff;
             border-radius: 14px;
@@ -227,7 +219,6 @@
             overflow: hidden;
         }
 
-        /* FIXED STICKY HEADER */
         .modal-header {
             position: sticky;
             top: 0;
@@ -273,7 +264,6 @@
             cursor: pointer;
         }
 
-        /* CONTINUOUS UNLOCKED REVIEWS LIST */
         .reviews-list {
             padding: 8px 20px 20px 20px;
         }
@@ -404,7 +394,6 @@
             <form method="POST" id="review-form">
                 <div class="form-grid">
 
-                    <!-- PACKAGE ID OR URL INPUT -->
                     <div class="form-group">
                         <label class="form-label">Application Package ID / URL</label>
                         <input 
@@ -417,7 +406,6 @@
                         <span class="form-hint">Enter the Package ID or paste the complete Play Store link.</span>
                     </div>
 
-                    <!-- DATE INPUT -->
                     <div class="form-group">
                         <label class="form-label">Review Date</label>
                         <input 
@@ -429,7 +417,6 @@
                         <span class="form-hint">Select the target review publication date.</span>
                     </div>
 
-                    <!-- STAR RATING SELECT WITH ICONS -->
                     <div class="form-group full-width">
                         <label class="form-label">Filter Rating</label>
                         <select class="form-select" name="rating">
@@ -442,7 +429,6 @@
                         </select>
                     </div>
 
-                    <!-- KEYWORDS SEARCH INPUT -->
                     <div class="form-group full-width">
                         <label class="form-label">Search Keywords</label>
                         <textarea 
@@ -467,8 +453,12 @@
                 <div class="toolbar-buttons">
                     <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
                     
-                    <!-- REEL GENERATION FORM BUTTON -->
+                    <!-- REEL GENERATION FORM WITH HIDDEN INPUTS (FIXED) -->
                     <form action="/generate-video" method="POST" id="video-form" style="display: inline;">
+                        <input type="hidden" name="package" value="{{ package }}">
+                        <input type="hidden" name="date" value="{{ request.form.get('date', '') }}">
+                        <input type="hidden" name="rating" value="{{ request.form.get('rating', '') }}">
+                        <input type="hidden" name="keyword" value="{{ request.form.get('keyword', '') }}">
                         <button type="submit" class="reel-btn">🎬 Generate Reel</button>
                     </form>
                 </div>
@@ -477,7 +467,6 @@
             <!-- DESKTOP STYLE MODAL DISPLAY -->
             <div class="play-modal-card" id="export-target">
                 
-                <!-- STICKY FIXED HEADER -->
                 <div class="modal-header">
                     <div class="modal-header-left">
                         {% if app_info and app_info.icon %}
@@ -491,7 +480,6 @@
                     <div class="modal-close-icon">✕</div>
                 </div>
 
-                <!-- UNLOCKED CONTINUOUS REVIEWS LIST -->
                 <div class="reviews-list">
                     {% set colors = ['#689f38', '#2e7d32', '#1565c0', '#ad1457', '#6a1b9a', '#ef6c00'] %}
                     {% for r in reviews %}
@@ -548,10 +536,9 @@
                 document.getElementById('loading-msg').innerText = 'Rendering Reel Video... Please wait';
                 document.getElementById('loading-overlay').style.display = 'flex';
                 
-                // Hide overlay after download triggers
                 setTimeout(function() {
                     document.getElementById('loading-overlay').style.display = 'none';
-                }, 10000);
+                }, 12000);
             });
         }
 
