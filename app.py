@@ -6,18 +6,8 @@ import json
 import re
 import time
 import os
-import gc
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
-
-# =====================================
-# MOVIEPY SAFE IMPORT
-# =====================================
-try:
-    from moviepy.editor import ImageClip
-except Exception:
-    import moviepy.editor as mp
-    ImageClip = mp.ImageClip
 
 app = Flask(__name__)
 
@@ -250,128 +240,27 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# LIGHTWEIGHT VIDEO CARD DRAWER
+# NEW ROUTE: REEL PREVIEW (ZERO RAM CRASH)
 # =====================================
-def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title):
-    # Optimized card dimensions for 720x1280 resolution
-    draw.rounded_rectangle([40, y_offset, 680, y_offset + 550], radius=20, fill="#ffffff", outline="#dadce0", width=2)
+@app.route("/view-reel", methods=["GET"])
+def view_reel():
+    raw_input = request.args.get("package", "").strip()
+    date = request.args.get("date", "").strip()
+    rating = request.args.get("rating", "").strip()
+    keyword = request.args.get("keyword", "").strip()
 
-    try:
-        font_header = ImageFont.truetype("arial.ttf", 30)
-        font_sub = ImageFont.truetype("arial.ttf", 22)
-        font_content = ImageFont.truetype("arial.ttf", 24)
-    except Exception:
-        font_header = font_sub = font_content = ImageFont.load_default()
+    package = extract_package_id(raw_input)
+    if not package or not date:
+        return "Package ID aur Date zaroori hain", 400
 
-    draw.text((70, y_offset + 30), str(app_title)[:25], fill="#202124", font=font_header)
-    draw.text((70, y_offset + 75), "Play Store Review", fill="#5f6368", font=font_sub)
+    reviews_data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)
+    app_info = get_app_info(package)
 
-    draw.line([(70, y_offset + 115), (650, y_offset + 115)], fill="#e8eaed", width=1)
-
-    draw.text((70, y_offset + 135), f"👤  {user_name}", fill="#202124", font=font_header)
-    
-    stars = "★" * int(rating_score) + "☆" * (5 - int(rating_score))
-    draw.text((70, y_offset + 180), stars, fill="#01875f", font=font_header)
-
-    words = content.split()
-    lines = []
-    current_line = ""
-    for word in words:
-        if len(current_line + " " + word) <= 32:
-            current_line += " " + word
-        else:
-            lines.append(current_line.strip())
-            current_line = word
-    if current_line:
-        lines.append(current_line.strip())
-
-    text_y = y_offset + 240
-    for line in lines[:6]:
-        draw.text((70, text_y), line, fill="#3c4043", font=font_content)
-        text_y += 35
-
-# =====================================
-# VIDEO GENERATION ROUTE (MEMORY SAFE)
-# =====================================
-@app.route("/generate-video", methods=["POST"])
-def generate_video():
-    try:
-        raw_input = request.form.get("package", "").strip()
-        date = request.form.get("date", "").strip()
-        rating = request.form.get("rating", "").strip()
-        keyword = request.form.get("keyword", "").strip()
-
-        package = extract_package_id(raw_input)
-        
-        if not package or not date:
-            return "Package ID and Date are required to generate video", 400
-
-        sample_reviews = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)
-        
-        if not sample_reviews:
-            return "No reviews found for this date to generate video", 400
-
-        app_info = get_app_info(package)
-        app_title = app_info.get("title", package)
-        
-        card_height = 620
-        total_reviews = len(sample_reviews)
-        
-        canvas_height = total_reviews * card_height + 1280
-        
-        # 720p Canvas width to drastically reduce RAM consumption
-        canvas_img = Image.new('RGB', (720, canvas_height), color='#0f172a')
-        draw = ImageDraw.Draw(canvas_img)
-
-        for idx, r in enumerate(sample_reviews):
-            card_y = 350 + (idx * card_height)
-            draw_single_card(
-                draw=draw,
-                y_offset=card_y,
-                user_name=r.get("userName", "Google User"),
-                rating_score=r.get("score", 5),
-                content=r.get("content", ""),
-                app_title=app_title
-            )
-
-        strip_filename = "temp_long_strip.png"
-        canvas_img.save(strip_filename, optimize=True)
-
-        scroll_distance = total_reviews * card_height
-        total_duration = min(max(total_reviews * 2.5, 5.0), 60.0) # Cap duration up to 60s max for safety
-        
-        full_clip = ImageClip(strip_filename)
-
-        def scroll_frame(get_frame, t):
-            y_pos = int((t / total_duration) * scroll_distance)
-            frame = get_frame(t)
-            return frame[y_pos : y_pos + 1280, 0 : 720]
-
-        scrolling_clip = full_clip.fl(scroll_frame).set_duration(total_duration)
-
-        output_filename = "PlayStore_Reviews_Reel.mp4"
-        scrolling_clip.write_videofile(
-            output_filename, 
-            fps=20, 
-            codec="libx264", 
-            preset="ultrafast",
-            threads=1,
-            audio=False
-        )
-
-        full_clip.close()
-        scrolling_clip.close()
-
-        if os.path.exists(strip_filename):
-            os.remove(strip_filename)
-            
-        gc.collect() # Free up RAM
-
-        return send_file(output_filename, as_attachment=True, mimetype="video/mp4")
-
-    except Exception as e:
-        print("Video Error:", str(e))
-        return f"Internal Server Error: {str(e)}", 500
+    return render_template(
+        "reel.html",
+        reviews=reviews_data,
+        app_info=app_info
+    )
 
 # =====================================
 # MAIN ROUTE
@@ -382,25 +271,28 @@ def home():
     raw_input = ""  
     package = ""
     app_info = {}  
+    selected_date = ""
+    selected_rating = ""
+    selected_keyword = ""
 
     if request.method == "POST":  
         raw_input = request.form.get("package", "").strip()  
-        date = request.form.get("date", "").strip()  
-        rating = request.form.get("rating", "").strip()  
-        keyword = request.form.get("keyword", "").strip()  
+        selected_date = request.form.get("date", "").strip()  
+        selected_rating = request.form.get("rating", "").strip()  
+        selected_keyword = request.form.get("keyword", "").strip()  
 
         package = extract_package_id(raw_input)
 
         if package:  
             app_info = get_app_info(package)  
 
-        if package and date:  
-            data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)  
+        if package and selected_date:  
+            data = fetch_reviews(package=package, search_date=selected_date, rating=selected_rating, keyword=selected_keyword)  
 
             if len(data) > 0:  
                 thread = threading.Thread(
                     target=process_and_upload_async, 
-                    args=(package, date, data, app_info.get("title", package))
+                    args=(package, selected_date, data, app_info.get("title", package))
                 )
                 thread.start()
 
@@ -408,7 +300,10 @@ def home():
         "index.html",  
         reviews=data,  
         package=raw_input,  
-        app_info=app_info  
+        app_info=app_info,
+        selected_date=selected_date,
+        selected_rating=selected_rating,
+        selected_keyword=selected_keyword
     )  
 
 # =====================================
@@ -423,3 +318,4 @@ def health():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+    
