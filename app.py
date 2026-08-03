@@ -6,11 +6,12 @@ import json
 import re
 import time
 import os
+import gc
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 # =====================================
-# MOVIEPY SAFE IMPORT (FIXED FOR RENDER)
+# MOVIEPY SAFE IMPORT
 # =====================================
 try:
     from moviepy.editor import ImageClip
@@ -31,7 +32,7 @@ MAX_FETCH = 50000
 BATCH_SIZE = 300
 
 # =====================================
-# UTILITY: EXTRACT PACKAGE NAME FROM LINK/ID
+# UTILITY: EXTRACT PACKAGE NAME
 # =====================================
 def extract_package_id(input_str):
     if not input_str:
@@ -66,7 +67,7 @@ def send_bot_message(app_name, date, total):
         print("Telegram Error :", e)
 
 # =====================================
-# GOOGLE SHEET UPLOAD (BACKGROUND TASK)
+# GOOGLE SHEET UPLOAD
 # =====================================
 def save_batch(package, search_date, rows):
     try:  
@@ -110,7 +111,6 @@ def process_and_upload_async(package, search_date, reviews_data, app_title):
 
     for i in range(0, len(rows), BATCH_SIZE):  
         batch = rows[i:i + BATCH_SIZE]  
-        print(f"Uploading Batch {i + len(batch)}/{len(rows)}")  
         save_batch(package, rows[0]["date"], batch)  
         time.sleep(0.3)  
 
@@ -242,8 +242,6 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
 
             data.append(review)  
 
-        print(f"Scanned : {total_scanned} | Matched : {len(data)}")  
-
         if stop or token is None or total_scanned >= MAX_FETCH:  
             break  
 
@@ -252,33 +250,34 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# VIDEO RENDER HELPER FUNCTION
+# LIGHTWEIGHT VIDEO CARD DRAWER
 # =====================================
 def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title):
-    draw.rounded_rectangle([80, y_offset, 1000, y_offset + 850], radius=32, fill="#ffffff", outline="#dadce0", width=3)
+    # Optimized card dimensions for 720x1280 resolution
+    draw.rounded_rectangle([40, y_offset, 680, y_offset + 550], radius=20, fill="#ffffff", outline="#dadce0", width=2)
 
     try:
-        font_header = ImageFont.truetype("arial.ttf", 45)
-        font_sub = ImageFont.truetype("arial.ttf", 32)
-        font_content = ImageFont.truetype("arial.ttf", 36)
+        font_header = ImageFont.truetype("arial.ttf", 30)
+        font_sub = ImageFont.truetype("arial.ttf", 22)
+        font_content = ImageFont.truetype("arial.ttf", 24)
     except Exception:
         font_header = font_sub = font_content = ImageFont.load_default()
 
-    draw.text((120, y_offset + 50), str(app_title)[:30], fill="#202124", font=font_header)
-    draw.text((120, y_offset + 110), "Play Store Review", fill="#5f6368", font=font_sub)
+    draw.text((70, y_offset + 30), str(app_title)[:25], fill="#202124", font=font_header)
+    draw.text((70, y_offset + 75), "Play Store Review", fill="#5f6368", font=font_sub)
 
-    draw.line([(120, y_offset + 170), (960, y_offset + 170)], fill="#e8eaed", width=2)
+    draw.line([(70, y_offset + 115), (650, y_offset + 115)], fill="#e8eaed", width=1)
 
-    draw.text((120, y_offset + 200), f"👤  {user_name}", fill="#202124", font=font_header)
+    draw.text((70, y_offset + 135), f"👤  {user_name}", fill="#202124", font=font_header)
     
     stars = "★" * int(rating_score) + "☆" * (5 - int(rating_score))
-    draw.text((120, y_offset + 270), stars, fill="#01875f", font=font_header)
+    draw.text((70, y_offset + 180), stars, fill="#01875f", font=font_header)
 
     words = content.split()
     lines = []
     current_line = ""
     for word in words:
-        if len(current_line + " " + word) <= 35:
+        if len(current_line + " " + word) <= 32:
             current_line += " " + word
         else:
             lines.append(current_line.strip())
@@ -286,84 +285,93 @@ def draw_single_card(draw, y_offset, user_name, rating_score, content, app_title
     if current_line:
         lines.append(current_line.strip())
 
-    text_y = y_offset + 360
+    text_y = y_offset + 240
     for line in lines[:6]:
-        draw.text((120, text_y), line, fill="#3c4043", font=font_content)
-        text_y += 50
+        draw.text((70, text_y), line, fill="#3c4043", font=font_content)
+        text_y += 35
 
 # =====================================
-# VIDEO GENERATION ROUTE (FULL FETCH ENABLED)
+# VIDEO GENERATION ROUTE (MEMORY SAFE)
 # =====================================
 @app.route("/generate-video", methods=["POST"])
 def generate_video():
-    raw_input = request.form.get("package", "").strip()
-    date = request.form.get("date", "").strip()
-    rating = request.form.get("rating", "").strip()
-    keyword = request.form.get("keyword", "").strip()
+    try:
+        raw_input = request.form.get("package", "").strip()
+        date = request.form.get("date", "").strip()
+        rating = request.form.get("rating", "").strip()
+        keyword = request.form.get("keyword", "").strip()
 
-    package = extract_package_id(raw_input)
-    
-    if not package or not date:
-        return "Package ID and Date are required to generate video", 400
+        package = extract_package_id(raw_input)
+        
+        if not package or not date:
+            return "Package ID and Date are required to generate video", 400
 
-    sample_reviews = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)
-    
-    if not sample_reviews:
-        return "No reviews found for this date to generate video", 400
+        sample_reviews = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)
+        
+        if not sample_reviews:
+            return "No reviews found for this date to generate video", 400
 
-    app_info = get_app_info(package)
-    app_title = app_info.get("title", package)
-    
-    # Process ALL fetched reviews dynamically without slicing
-    card_height = 950
-    total_reviews = len(sample_reviews)
-    
-    canvas_height = total_reviews * card_height + 1920
-    canvas_img = Image.new('RGB', (1080, canvas_height), color='#0f172a')
-    draw = ImageDraw.Draw(canvas_img)
+        app_info = get_app_info(package)
+        app_title = app_info.get("title", package)
+        
+        card_height = 620
+        total_reviews = len(sample_reviews)
+        
+        canvas_height = total_reviews * card_height + 1280
+        
+        # 720p Canvas width to drastically reduce RAM consumption
+        canvas_img = Image.new('RGB', (720, canvas_height), color='#0f172a')
+        draw = ImageDraw.Draw(canvas_img)
 
-    for idx, r in enumerate(sample_reviews):
-        card_y = 530 + (idx * card_height)
-        draw_single_card(
-            draw=draw,
-            y_offset=card_y,
-            user_name=r.get("userName", "Google User"),
-            rating_score=r.get("score", 5),
-            content=r.get("content", ""),
-            app_title=app_title
+        for idx, r in enumerate(sample_reviews):
+            card_y = 350 + (idx * card_height)
+            draw_single_card(
+                draw=draw,
+                y_offset=card_y,
+                user_name=r.get("userName", "Google User"),
+                rating_score=r.get("score", 5),
+                content=r.get("content", ""),
+                app_title=app_title
+            )
+
+        strip_filename = "temp_long_strip.png"
+        canvas_img.save(strip_filename, optimize=True)
+
+        scroll_distance = total_reviews * card_height
+        total_duration = min(max(total_reviews * 2.5, 5.0), 60.0) # Cap duration up to 60s max for safety
+        
+        full_clip = ImageClip(strip_filename)
+
+        def scroll_frame(get_frame, t):
+            y_pos = int((t / total_duration) * scroll_distance)
+            frame = get_frame(t)
+            return frame[y_pos : y_pos + 1280, 0 : 720]
+
+        scrolling_clip = full_clip.fl(scroll_frame).set_duration(total_duration)
+
+        output_filename = "PlayStore_Reviews_Reel.mp4"
+        scrolling_clip.write_videofile(
+            output_filename, 
+            fps=20, 
+            codec="libx264", 
+            preset="ultrafast",
+            threads=1,
+            audio=False
         )
 
-    strip_filename = "temp_long_strip.png"
-    canvas_img.save(strip_filename)
+        full_clip.close()
+        scrolling_clip.close()
 
-    scroll_distance = total_reviews * card_height
-    total_duration = total_reviews * 3.0  # Duration calculated proportionally
-    
-    full_clip = ImageClip(strip_filename)
+        if os.path.exists(strip_filename):
+            os.remove(strip_filename)
+            
+        gc.collect() # Free up RAM
 
-    def scroll_frame(get_frame, t):
-        y_pos = int((t / total_duration) * scroll_distance)
-        frame = get_frame(t)
-        return frame[y_pos : y_pos + 1920, 0 : 1080]
+        return send_file(output_filename, as_attachment=True, mimetype="video/mp4")
 
-    scrolling_clip = full_clip.fl(scroll_frame).set_duration(total_duration)
-
-    output_filename = "PlayStore_Reviews_Reel.mp4"
-    scrolling_clip.write_videofile(
-        output_filename, 
-        fps=24, 
-        codec="libx264", 
-        preset="ultrafast",
-        threads=2
-    )
-
-    full_clip.close()
-    scrolling_clip.close()
-
-    if os.path.exists(strip_filename):
-        os.remove(strip_filename)
-
-    return send_file(output_filename, as_attachment=True, mimetype="video/mp4")
+    except Exception as e:
+        print("Video Error:", str(e))
+        return f"Internal Server Error: {str(e)}", 500
 
 # =====================================
 # MAIN ROUTE
@@ -415,4 +423,3 @@ def health():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-    
