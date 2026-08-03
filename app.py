@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 from google_play_scraper import reviews, Sort, app as play_app
 import threading
 import requests
 import json
 import re
 import time
+import os
 from datetime import datetime
+from PIL import Image, ImageDraw, ImageFont
 
 app = Flask(__name__)
 
@@ -238,7 +240,7 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
-# ROUTE: REEL PREVIEW (AUTO SCROLL)
+# ROUTE: REEL PREVIEW (ZERO RAM CRASH)
 # =====================================
 @app.route("/view-reel", methods=["GET"])
 def view_reel():
@@ -249,7 +251,7 @@ def view_reel():
 
     package = extract_package_id(raw_input)
     if not package or not date:
-        return "<h2 style='color:red; text-align:center; margin-top:50px;'>Package ID aur Date zaroori hain! Kripya pehle Reviews Fetch karein.</h2>", 400
+        return "<h3 style='color:red; text-align:center;'>Package ID aur Date required hain</h3>", 400
 
     reviews_data = fetch_reviews(package=package, search_date=date, rating=rating, keyword=keyword)
     app_info = get_app_info(package)
