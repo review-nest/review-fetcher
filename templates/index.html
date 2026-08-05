@@ -35,9 +35,6 @@
             max-width: 680px;
         }
 
-        /* ========================================================
-           CLEAN & PROFESSIONAL AESTHETIC FORM CARD
-           ======================================================== */
         .form-card {
             background: #ffffff;
             padding: 28px 26px;
@@ -132,9 +129,6 @@
             background: #1d4ed8;
         }
 
-        /* ========================================================
-           AESTHETIC LOADING SPINNER
-           ======================================================== */
         #loading-overlay {
             display: none;
             position: fixed;
@@ -167,7 +161,6 @@
             color: #475569;
         }
 
-        /* TOOLBAR */
         .action-toolbar {
             display: flex;
             justify-content: space-between;
@@ -214,9 +207,6 @@
 
         .video-btn:hover { background: #1d4ed8; }
 
-        /* ========================================================
-           DESKTOP MODE PLAY STORE MODAL (CLEAN & ACCURATE)
-           ======================================================== */
         .play-modal-card {
             background: #ffffff;
             border-radius: 14px;
@@ -225,7 +215,6 @@
             overflow: hidden;
         }
 
-        /* FIXED STICKY HEADER */
         .modal-header {
             position: sticky;
             top: 0;
@@ -271,7 +260,6 @@
             cursor: pointer;
         }
 
-        /* CONTINUOUS UNLOCKED REVIEWS LIST */
         .reviews-list {
             padding: 8px 20px 20px 20px;
         }
@@ -308,6 +296,13 @@
             align-items: center;
             justify-content: center;
             text-transform: uppercase;
+        }
+
+        .avatar-img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
         }
 
         .ps-username {
@@ -386,7 +381,6 @@
 
 <body>
 
-    <!-- SPINNER OVERLAY -->
     <div id="loading-overlay">
         <div class="aesthetic-spinner"></div>
         <div class="loading-text" id="loading-text-label">Fetching Reviews...</div>
@@ -394,14 +388,12 @@
 
     <div class="main-wrapper">
 
-        <!-- FORM CONTAINER -->
         <div class="form-card">
             <div class="form-title">Play Store Reviews Fetcher</div>
             
             <form method="POST" id="review-form">
                 <div class="form-grid">
 
-                    <!-- PACKAGE ID OR URL INPUT -->
                     <div class="form-group">
                         <label class="form-label">Application Package ID / URL</label>
                         <input 
@@ -414,7 +406,6 @@
                         <span class="form-hint">Enter the Package ID or paste the complete Play Store link.</span>
                     </div>
 
-                    <!-- DATE INPUT -->
                     <div class="form-group">
                         <label class="form-label">Review Date</label>
                         <input 
@@ -426,7 +417,6 @@
                         <span class="form-hint">Select the target review publication date.</span>
                     </div>
 
-                    <!-- STAR RATING SELECT WITH ICONS -->
                     <div class="form-group full-width">
                         <label class="form-label">Filter Rating</label>
                         <select class="form-select" name="rating">
@@ -439,7 +429,6 @@
                         </select>
                     </div>
 
-                    <!-- KEYWORDS SEARCH INPUT -->
                     <div class="form-group full-width">
                         <label class="form-label">Search Keywords</label>
                         <textarea 
@@ -457,22 +446,17 @@
 
         {% if reviews is not none and reviews|length > 0 %}
 
-            <!-- EXPORT TOOLBAR -->
             <div class="action-toolbar">
                 <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
                 
                 <div class="btn-group">
                     <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
-                    
-                    <!-- UPDATED REEL VIDEO LINK BUTTON -->
                     <a href="/reel" target="_blank" class="video-btn">🎥 Export Video (Reel)</a>
                 </div>
             </div>
 
-            <!-- DESKTOP STYLE MODAL DISPLAY -->
             <div class="play-modal-card" id="export-target">
                 
-                <!-- STICKY FIXED HEADER -->
                 <div class="modal-header">
                     <div class="modal-header-left">
                         {% if app_info and app_info.icon %}
@@ -486,16 +470,19 @@
                     <div class="modal-close-icon">✕</div>
                 </div>
 
-                <!-- UNLOCKED CONTINUOUS REVIEWS LIST -->
                 <div class="reviews-list">
                     {% set colors = ['#689f38', '#2e7d32', '#1565c0', '#ad1457', '#6a1b9a', '#ef6c00'] %}
                     {% for r in reviews %}
                         <div class="ps-review-item">
                             <div class="ps-user-header">
                                 <div class="ps-user-info">
-                                    <div class="avatar-circle" style="background-color: {{ colors[loop.index0 % 6] }};">
-                                        {{ r.userName[0] if r.userName else 'A' }}
-                                    </div>
+                                    {% if r.userImage %}
+                                        <img src="{{ r.userImage }}" class="avatar-img" alt="User Avatar" referrerpolicy="no-referrer">
+                                    {% else %}
+                                        <div class="avatar-circle" style="background-color: {{ colors[loop.index0 % 6] }};">
+                                            {{ r.userName[0] if r.userName else 'A' }}
+                                        </div>
+                                    {% endif %}
                                     <div class="ps-username">{{ r.userName if r.userName else 'A Google User' }}</div>
                                 </div>
                                 <div class="ps-three-dots">⋮</div>
@@ -553,4 +540,5 @@
         }
     </script>
 </body>
-</html>
+    </html>
+    
