@@ -8,6 +8,7 @@ import time
 import os
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
+import pandas as pd
 
 # =====================================
 # MOVIEPY SAFE IMPORT FIX (RENDER COMPATIBLE)
@@ -43,6 +44,8 @@ BATCH_SIZE = 300
 # Global storage for fetched reviews and app info
 CURRENT_FETCHED_REVIEWS = []
 CURRENT_APP_INFO = {}
+CURRENT_PACKAGE = ""
+CURRENT_SEARCH_DATE = ""
 
 # =====================================
 # UTILITY: EXTRACT PACKAGE NAME FROM LINK/ID
@@ -78,6 +81,50 @@ def send_bot_message(app_name, date, total):
         )  
     except Exception as e:  
         print("Telegram Error :", e)
+
+# =====================================
+# LOCAL HIERARCHICAL FOLDER STORAGE
+# =====================================
+def save_reviews_to_local_folder(package, search_date, reviews_data):
+    if not reviews_data:
+        return None
+    try:
+        # Parse month folder name from search_date (e.g., '2026-06')
+        dt = datetime.strptime(search_date, "%Y-%m-%d")
+        month_folder_name = dt.strftime("%B_%Y") # e.g. June_2026
+        
+        # Structure: Play Store / Month / Date / File
+        base_dir = os.path.join("Play Store", month_folder_name, search_date)
+        os.makedirs(base_dir, exist_ok=True)
+        
+        file_path = os.path.join(base_dir, f"{package}_reviews.xlsx")
+        
+        rows = []
+        for r in reviews_data:
+            at = r.get("at")
+            if hasattr(at, "strftime"):
+                date_str = at.strftime("%Y-%m-%d")
+                time_str = at.strftime("%H:%M:%S")
+            else:
+                date_str = str(at)[:10]
+                time_str = str(at)[11:19]
+
+            rows.append({
+                "Username": str(r.get("userName", "")),
+                "Review": str(r.get("content", "")),
+                "Rating": int(r.get("score", 0)),
+                "Date": date_str,
+                "Time": time_str,
+                "Package": package
+            })
+            
+        df = pd.DataFrame(rows)
+        df.to_excel(file_path, index=False)
+        print(f"Locally saved to folder structure: {file_path}")
+        return file_path
+    except Exception as e:
+        print("Local folder save error:", e)
+        return None
 
 # =====================================
 # GOOGLE SHEET UPLOAD (BACKGROUND TASK)
@@ -129,6 +176,7 @@ def process_and_upload_async(package, search_date, reviews_data, app_title):
         time.sleep(0.3)  
 
     print("Google Sheet Upload Completed via Background Thread")
+    save_reviews_to_local_folder(package, search_date, reviews_data)
     send_bot_message(app_title, search_date, len(rows))
 
 # =====================================
@@ -266,6 +314,20 @@ def fetch_reviews(package, search_date, rating=None, keyword=None):
     return data  
 
 # =====================================
+# EXCEL EXPORT ROUTE
+# =====================================
+@app.route("/export-excel")
+def export_excel():
+    global CURRENT_FETCHED_REVIEWS, CURRENT_PACKAGE, CURRENT_SEARCH_DATE
+    if not CURRENT_FETCHED_REVIEWS:
+        return "No reviews available to export.", 400
+    
+    file_path = save_reviews_to_local_folder(CURRENT_PACKAGE, CURRENT_SEARCH_DATE, CURRENT_FETCHED_REVIEWS)
+    if file_path and os.path.exists(file_path):
+        return send_file(file_path, as_attachment=True)
+    return "Error generating Excel file.", 500
+
+# =====================================
 # REEL VIEW ROUTE (SMOOTH AUTO-SCROLL)
 # =====================================
 @app.route("/reel")
@@ -282,7 +344,7 @@ def reel_view():
 # =====================================
 @app.route("/", methods=["GET", "POST"])
 def home():
-    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO
+    global CURRENT_FETCHED_REVIEWS, CURRENT_APP_INFO, CURRENT_PACKAGE, CURRENT_SEARCH_DATE
     data = []  
     raw_input = ""  
     package = ""
@@ -295,6 +357,8 @@ def home():
         keyword = request.form.get("keyword", "").strip()  
 
         package = extract_package_id(raw_input)
+        CURRENT_PACKAGE = package
+        CURRENT_SEARCH_DATE = date
 
         if package:  
             app_info = get_app_info(package)  
@@ -331,4 +395,4 @@ def health():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-                
+    
