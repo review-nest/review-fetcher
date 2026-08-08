@@ -174,38 +174,41 @@
 
         .btn-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .download-btn {
-            padding: 7px 16px;
-            font-size: 12px;
+        /* Premium Compact Action Buttons */
+        .premium-btn {
+            padding: 6px 14px;
+            font-size: 11.5px;
             font-weight: 500;
-            border-radius: 20px;
+            border-radius: 16px;
             border: none;
-            background: #01875f;
-            color: #ffffff;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .download-btn:hover { background: #016c4c; }
-
-        .video-btn {
-            padding: 7px 16px;
-            font-size: 12px;
-            font-weight: 500;
-            border-radius: 20px;
-            border: none;
-            background: #2563eb;
             color: #ffffff;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
-            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
         }
 
-        .video-btn:hover { background: #1d4ed8; }
+        .excel-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .excel-btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-1px);
+        }
+
+        .pdf-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        .pdf-btn:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-1px);
+        }
 
         .play-modal-card {
             background: #ffffff;
@@ -450,8 +453,8 @@
                 <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
                 
                 <div class="btn-group">
-                    <button class="download-btn" onclick="exportToPDF()">Save as PDF</button>
-                    <a href="/reel" target="_blank" class="video-btn">🎥 Export Video (Reel)</a>
+                    <a href="/export-excel" class="premium-btn excel-btn">📊 Excel Extract</a>
+                    <button class="premium-btn pdf-btn" onclick="exportToPDF()">📄 Save PDF</button>
                 </div>
             </div>
 
@@ -540,5 +543,4 @@
         }
     </script>
 </body>
-    </html>
-    
+</html>
