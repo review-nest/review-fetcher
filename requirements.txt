@@ -1,4 +1,5 @@
-flask
+gunicorn
+Flask
 google-play-scraper
 requests
 pillow
