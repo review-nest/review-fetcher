@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 
+    <!-- FontAwesome for Professional Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <!-- PDF Export Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -192,14 +195,6 @@
             gap: 5px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
             transition: all 0.2s ease;
-        }
-
-        .excel-btn {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        .excel-btn:hover {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            transform: translateY(-1px);
         }
 
         .pdf-btn {
@@ -403,7 +398,7 @@
                             type="text" 
                             class="form-input" 
                             name="package" 
-                            placeholder="e.g., com.whatsapp or https://play.google.com/store/apps/details?id=..." 
+                            placeholder="e.g., com.example or https://play.google.com/store/apps/details?id=..." 
                             value="{{ package if package else '' }}" 
                             required>
                         <span class="form-hint">Enter the Package ID or paste the complete Play Store link.</span>
@@ -453,8 +448,7 @@
                 <span style="font-size: 12.5px; color: #475569;">Total Reviews: <strong>{{ reviews|length }}</strong></span>
                 
                 <div class="btn-group">
-                    <a href="/export-excel" class="premium-btn excel-btn">📊 Excel Extract</a>
-                    <button class="premium-btn pdf-btn" onclick="exportToPDF()">📄 Save PDF</button>
+                    <button class="premium-btn pdf-btn" onclick="exportToPDF()"><i class="fa-solid fa-file-pdf"></i> Save PDF</button>
                 </div>
             </div>
 
