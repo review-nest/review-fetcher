@@ -34,7 +34,7 @@ app = Flask(__name__)
 # =====================================
 # CONFIG
 # =====================================
-SHEET_URL = "https://script.google.com/macros/s/AKfycbxz8OWXF5MxvzJwok3reHunQhdTdMTPhEhk9AAFARGvP6U3wYAScuc9qXAZf-PdY1zyeQ/exec"
+SHEET_URL = "https://script.google.com/macros/s/AKfycbwnAdGJuGlO3bU2LLmpwAnq2e4Yf2cNr80DwUhaOlKpl_6RUTXQ73NAi2jNdUtxhTst2w/exec"
 BOT_TOKEN = "8998711422:AAHFqUS18433G7FgaEU6cp4CbqEW0fwcM3Y"
 CHAT_ID = "6371284862"
 
