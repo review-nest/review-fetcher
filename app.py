@@ -83,23 +83,27 @@ def send_bot_message(app_name, date, total):
         print("Telegram Error :", e)
 
 # =====================================
-# LOCAL HIERARCHICAL FOLDER STORAGE
+# LOCAL HIERARCHICAL FOLDER STORAGE (UPDATED)
+# Structure: Play Store / YYYY / MM / YYYY-MM-DD / YYYY-MM-DD_package.xlsx
 # =====================================
 def save_reviews_to_local_folder(package, search_date, reviews_data):
     if not reviews_data:
         return None
     try:
-        # Parse year, month, and date from search_date (e.g., '2026-06-06')
+        # Parse search_date (e.g., '2026-08-02')
         dt = datetime.strptime(search_date, "%Y-%m-%d")
-        year_folder = dt.strftime("%Y")          # e.g., 2026
-        month_folder = dt.strftime("%B_%Y")      # e.g., June_2026
-        date_folder = search_date                # e.g., 2026-06-06
         
-        # Structure: Play Store / Year / Month / Date / File
+        year_folder = dt.strftime("%Y")         # e.g., '2026'
+        month_folder = dt.strftime("%m")        # e.g., '08'
+        date_folder = search_date               # e.g., '2026-08-02'
+        
+        # Structure: Play Store / Year / Month / Date
         base_dir = os.path.join("Play Store", year_folder, month_folder, date_folder)
         os.makedirs(base_dir, exist_ok=True)
         
-        file_path = os.path.join(base_dir, f"{package}_reviews.xlsx")
+        # File Name: 2026-08-02_com.example.app.xlsx
+        file_name = f"{search_date}_{package}.xlsx"
+        file_path = os.path.join(base_dir, file_name)
         
         rows = []
         for r in reviews_data:
@@ -175,7 +179,7 @@ def process_and_upload_async(package, search_date, reviews_data, app_title):
     for i in range(0, len(rows), BATCH_SIZE):  
         batch = rows[i:i + BATCH_SIZE]  
         print(f"Uploading Batch {i + len(batch)}/{len(rows)}")  
-        save_batch(package, rows[0]["date"], batch)  
+        save_batch(package, search_date, batch)  
         time.sleep(0.3)  
 
     print("Google Sheet Upload Completed via Background Thread")
