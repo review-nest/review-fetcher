@@ -89,12 +89,14 @@ def save_reviews_to_local_folder(package, search_date, reviews_data):
     if not reviews_data:
         return None
     try:
-        # Parse month folder name from search_date (e.g., '2026-06')
+        # Parse year, month, and date from search_date (e.g., '2026-06-06')
         dt = datetime.strptime(search_date, "%Y-%m-%d")
-        month_folder_name = dt.strftime("%B_%Y") # e.g. June_2026
+        year_folder = dt.strftime("%Y")          # e.g., 2026
+        month_folder = dt.strftime("%B_%Y")      # e.g., June_2026
+        date_folder = search_date                # e.g., 2026-06-06
         
-        # Structure: Play Store / Month / Date / File
-        base_dir = os.path.join("Play Store", month_folder_name, search_date)
+        # Structure: Play Store / Year / Month / Date / File
+        base_dir = os.path.join("Play Store", year_folder, month_folder, date_folder)
         os.makedirs(base_dir, exist_ok=True)
         
         file_path = os.path.join(base_dir, f"{package}_reviews.xlsx")
@@ -110,6 +112,7 @@ def save_reviews_to_local_folder(package, search_date, reviews_data):
                 time_str = str(at)[11:19]
 
             rows.append({
+                "App Name": CURRENT_APP_INFO.get("title", package),
                 "Username": str(r.get("userName", "")),
                 "Review": str(r.get("content", "")),
                 "Rating": int(r.get("score", 0)),
